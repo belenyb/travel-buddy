@@ -1,0 +1,5 @@
+{
+  "flutterSdkVersion": "stable",
+  "dart.flutterSdkPath": "./flutter_sdk",
+  "flavors": {}
+}
