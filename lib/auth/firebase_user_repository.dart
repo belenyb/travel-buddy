@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -30,11 +29,11 @@ class FirebaseUserRepository implements UserRepository {
       return user;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
-        log('The password provided is too weak.');
+        throw Exception(e.message ?? "The password is too weak");
       } else if (e.code == 'email-already-in-use') {
-        log('The account already exists for that email.');
+        throw Exception(e.message ?? "The email is already in use");
       } else if (e.code == "invalid-email") {
-        log("The email address is badly formatted.");
+        throw Exception(e.message ?? "The email is invalid");
       }
       rethrow;
     } catch (e) {
@@ -52,7 +51,7 @@ class FirebaseUserRepository implements UserRepository {
       if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
         log('Invalid user credentials.');
       }
-      rethrow;
+      throw Exception(e.message ?? "Error signing in");
     } catch (e) {
       log(e.toString());
       rethrow;

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,10 +21,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       FirebaseUserRepository();
 
   void emailChanged(EmailChanged event, Emitter<AuthState> emit) {
+    emit(state.copyWith(status: FormStatus.initial));
     emit(state.copyWith(email: event.email));
   }
 
   void passwordChanged(PasswordChanged event, Emitter<AuthState> emit) {
+    emit(state.copyWith(status: FormStatus.initial));
     emit(state.copyWith(password: event.password));
   }
 
@@ -30,24 +34,46 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final email = state.email;
     final password = state.password;
 
-    if (email.isEmpty || password.isEmpty) return;
-    await firebaseUserRepository.signIn(email, password);
+    emit(state.copyWith(status: FormStatus.pending));
+
+    if (email.isEmpty || password.isEmpty) {
+      emit(state.copyWith(status: FormStatus.error));
+      return;
+    }
+
+    try {
+      await firebaseUserRepository.signIn(email, password);
+      emit(state.copyWith(status: FormStatus.success));
+    } on Exception catch (e) {
+      log(e.toString());
+      emit(state.copyWith(status: FormStatus.error, errorMsg: e.toString()));
+    } catch (e) {
+      log(e.toString());
+      emit(state.copyWith(status: FormStatus.error, errorMsg: e.toString()));
+    }
   }
 
   void signUp(SignUp event, Emitter<AuthState> emit) async {
     final email = state.email;
     final password = state.password;
 
-    if (email.isEmpty || password.isEmpty) return;
-
     emit(state.copyWith(status: FormStatus.pending));
 
-    final User? user = await firebaseUserRepository.signUp(email, password);
-
-    if (user != null) {
-      emit(state.copyWith(status: FormStatus.success));
-    } else {
+    if (email.isEmpty || password.isEmpty) {
       emit(state.copyWith(status: FormStatus.error));
+      return;
+    }
+
+    try {
+      final User? user = await firebaseUserRepository.signUp(email, password);
+      if (user != null) {
+        emit(state.copyWith(status: FormStatus.success));
+      } else {
+        emit(state.copyWith(
+            status: FormStatus.error, errorMsg: "Error signing up"));
+      }
+    } catch (e) {
+      emit(state.copyWith(status: FormStatus.error, errorMsg: e.toString()));
     }
   }
 }
