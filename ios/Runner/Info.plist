@@ -28,6 +28,17 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+  <key>NSLocationWhenInUseUsageDescription</key>
+  <string>We need your location to show it on the map</string>
+  <key>NSLocationAlwaysUsageDescription</key>
+  <string>We need your location to show it on the map</string>
+  <key>io.flutter.embedded_views_preview</key>
+  <true/>
+  <key>UIBackgroundModes</key>
+  <array>
+  <string>fetch</string>
+  <string>location</string>
+  </array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

@@ -5,8 +5,10 @@ import 'package:travel_buddy/auth/firebase_user_repository.dart';
 import 'package:travel_buddy/screens/home_screen.dart';
 import 'firebase_options.dart';
 import 'screens/auth_form_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
+  await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await Firebase.initializeApp(
