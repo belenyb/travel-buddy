@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:travel_buddy/blocs/auth_bloc/auth_bloc.dart';
+import 'package:travel_buddy/screens/home_screen.dart';
 import 'firebase_options.dart';
 import 'screens/auth_form_screen.dart';
 
@@ -23,11 +22,16 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      routes: {
+        '/home': (context) => const HomeScreen(),
+      },
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
       home: const AuthFormScreen(isLogin: true),
+      // home: const HomeScreen(),
     );
   }
 }

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:travel_buddy/auth/user_model.dart';
 
 class FirebaseUserRepository implements UserRepository {
   // The FirebaseUserRepository class implements the interface methods using Firebase Authentication functionalities
@@ -21,7 +20,7 @@ class FirebaseUserRepository implements UserRepository {
   }
 
   @override
-  FutureOr<User?> signUp(String email, String password) async {
+  Future<User?> signUp(String email, String password) async {
     try {
       UserCredential credentials = await firebaseAuth
           .createUserWithEmailAndPassword(email: email, password: password);
@@ -43,7 +42,7 @@ class FirebaseUserRepository implements UserRepository {
   }
 
   @override
-  FutureOr<void> signIn(String email, String password) async {
+  Future<void> signIn(String email, String password) async {
     try {
       await firebaseAuth.signInWithEmailAndPassword(
           email: email, password: password);
@@ -59,7 +58,7 @@ class FirebaseUserRepository implements UserRepository {
   }
 
   @override
-  FutureOr<void> signOut() async {
+  Future<void> signOut() async {
     try {
       await firebaseAuth.signOut();
     } catch (e) {
@@ -69,7 +68,7 @@ class FirebaseUserRepository implements UserRepository {
   }
 
   @override
-  FutureOr<void> resetPassword(String email) async {
+  Future<void> resetPassword(String email) async {
     try {
       await firebaseAuth.sendPasswordResetEmail(email: email);
     } catch (e) {
@@ -78,8 +77,18 @@ class FirebaseUserRepository implements UserRepository {
     }
   }
 
+  Future<User?> getCurrentUser() async {
+    try {
+      User? currentUser = FirebaseAuth.instance.currentUser;
+      return currentUser;
+    } catch (e) {
+      log(e.toString());
+      return null;
+    }
+  }
+
   // @override
-  // FutureOr<UserModel> getMyUser(String userId) async {
+  // Future<UserModel> getMyUser(String userId) async {
   //   try {
   //     return usersCollection
   //         .doc(userId)
@@ -91,15 +100,15 @@ class FirebaseUserRepository implements UserRepository {
   //   }
   // }
 
-  @override
-  FutureOr<void> setUserData(UserModel user) async {
-    try {
-      await usersCollection.doc(user.id).set(user.toMap(user));
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
-  }
+  // @override
+  // Future<void> setUserData(UserModel user) async {
+  //   try {
+  //     await usersCollection.doc(user.id).set(user.toMap(user));
+  //   } catch (e) {
+  //     log(e.toString());
+  //     rethrow;
+  //   }
+  // }
 }
 
 abstract class UserRepository {
@@ -107,10 +116,11 @@ abstract class UserRepository {
   // on different user authentication systems (Firebase, local storage, etc.).
   Stream<User?> get user;
 
-  FutureOr<void> signIn(String email, String password);
-  FutureOr<User?> signUp(String user, String password);
-  FutureOr<void> signOut();
-  FutureOr<void> resetPassword(String email);
-  FutureOr<void> setUserData(UserModel user);
+  Future<void> signIn(String email, String password);
+  Future<User?> signUp(String user, String password);
+  Future<void> signOut();
+  Future<void> resetPassword(String email);
+  // FutureOr<User?> getCurrentUser();
+  // FutureOr<void> setUserData(UserModel user);
   // FutureOr<UserModel> getMyUser(String userId);
 }
