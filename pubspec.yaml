@@ -38,7 +38,7 @@ dependencies:
   firebase_auth: ^5.2.0
   cloud_firestore: ^5.3.0
   flutter_bloc: ^8.1.6
-  equatable: ^2.0.5
+  google_maps_flutter: ^2.9.0
 
 dev_dependencies:
   flutter_test:
