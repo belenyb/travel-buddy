@@ -30,7 +30,7 @@ class App extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const AuthFormScreen(isLogin: true),
+      home: const AuthFormScreen(),
       // home: const HomeScreen(),
     );
   }
