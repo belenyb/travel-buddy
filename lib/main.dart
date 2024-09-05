@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
+import 'package:travel_buddy/app_state.dart';
 import 'package:travel_buddy/auth/firebase_user_repository.dart';
 import 'package:travel_buddy/screens/home_screen.dart';
 import 'firebase_options.dart';
@@ -35,8 +36,12 @@ class _AppState extends State<App> {
   }
 
   Future<void> _checkAuthentication() async {
-    final userRepository = FirebaseUserRepository();
+    final FirebaseUserRepository userRepository = FirebaseUserRepository();
     final user = await userRepository.getCurrentUser();
+    if (user != null) {
+      AppState.isAuthenticated = true;
+      AppState.currentUser = user;
+    }
     setState(() {
       _isAuthenticated = user != null;
       _isLoading = false;

@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../app_state.dart';
 import '../auth/firebase_user_repository.dart';
 import 'package:http/http.dart' as http;
 
@@ -14,43 +16,26 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final FirebaseUserRepository userRepository = FirebaseUserRepository();
-    return FutureBuilder(
-      future: userRepository.getCurrentUser(),
-      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Text("Error: ${snapshot.error}");
-        } else if (snapshot.hasData) {
-          if (snapshot.data == null) {
-            return const Text("User not logged in");
-          } else {
-            return Scaffold(
-              appBar: AppBar(
-                leading: const Text(
-                  "T-Buddy",
-                  softWrap: true,
-                ),
-                title: Text(snapshot.data.email),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.logout_outlined),
-                    onPressed: () async {
-                      await userRepository.signOut();
-                      Navigator.pushReplacementNamed(context, "/auth");
-                    },
-                  ),
-                ],
-              ),
-              body: Container(
-                child: GoogleMapWidget(),
-              ),
-            );
-          }
-        } else {
-          return Container();
-        }
-      },
+    final User? currentUser = AppState.currentUser;
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: const Text(
+          "T-Buddy",
+          softWrap: true,
+        ),
+        title: Text(currentUser!.email!),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout_outlined),
+            onPressed: () async {
+              await userRepository.signOut();
+              Navigator.pushReplacementNamed(context, "/auth");
+            },
+          ),
+        ],
+      ),
+      body: const GoogleMapWidget(),
     );
   }
 }
