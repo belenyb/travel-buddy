@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:travel_buddy/app_state.dart';
 
 class FirebaseUserRepository implements UserRepository {
   // The FirebaseUserRepository class implements the interface methods using Firebase Authentication functionalities
@@ -61,6 +62,8 @@ class FirebaseUserRepository implements UserRepository {
   Future<void> signOut() async {
     try {
       await firebaseAuth.signOut();
+      AppState.isAuthenticated = true;
+      AppState.currentUser = null;
     } catch (e) {
       log(e.toString());
       rethrow;
