@@ -8,6 +8,7 @@ import '../auth/firebase_user_repository.dart';
 import '../blocs/foursquare_bloc/foursquare_bloc.dart';
 import '../blocs/foursquare_bloc/foursquare_bloc_event.dart';
 import '../blocs/foursquare_bloc/foursquare_bloc_state.dart';
+import '../models/foursquare_categories.dart';
 
 class HomeScreen extends StatelessWidget {
   static const String routeName = "/home";
@@ -20,9 +21,9 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leading: const Text(
-          "T-Buddy",
-          softWrap: true,
+        leading: Icon(
+          Icons.travel_explore,
+          color: Theme.of(context).primaryColor,
         ),
         title: Text(currentUser!.email!),
         actions: [
@@ -54,11 +55,14 @@ class _MyAppState extends State<GoogleMapWidget> {
   late GoogleMapController mapController;
   late LatLng _center;
   Set<Marker> _markers = {};
+  late String _currentCategory;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _center = const LatLng(-33.86, 151.20);
+    _currentCategory = "";
     _getUserLocation();
   }
 
@@ -77,8 +81,24 @@ class _MyAppState extends State<GoogleMapWidget> {
   }
 
   void _onSearchCategory(String category) {
+    _currentCategory = category;
     final placesBloc = BlocProvider.of<FoursquareBloc>(context);
     placesBloc.add(SearchPlacesEvent(category, _center));
+  }
+
+  void _onCameraIdle() async {
+    final LatLngBounds visibleRegion = await mapController.getVisibleRegion();
+    LatLng centerLatLng = LatLng(
+      (visibleRegion.northeast.latitude + visibleRegion.southwest.latitude) / 2,
+      (visibleRegion.northeast.longitude + visibleRegion.southwest.longitude) /
+          2,
+    );
+
+    setState(() {
+      _center = centerLatLng;
+    });
+
+    if (_currentCategory != "") _onSearchCategory(_currentCategory);
   }
 
   @override
@@ -86,21 +106,21 @@ class _MyAppState extends State<GoogleMapWidget> {
     return BlocListener<FoursquareBloc, FoursquareBlocState>(
       listener: (context, state) {
         if (state is FoursquareBlocLoadedState) {
-          Navigator.of(context).pop();
           setState(() {
             _markers = state.markers;
+            _isLoading = false;
           });
         } else if (state is FoursquareBlocErrorState) {
-          Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.error)),
           );
+          setState(() {
+            _isLoading = false;
+          });
         } else if (state is FoursquareBlocLoadingState) {
-          showDialog(
-            context: context,
-            builder: (context) =>
-                const Center(child: CircularProgressIndicator()),
-          );
+          setState(() {
+            _isLoading = true;
+          });
         }
       },
       child: SafeArea(
@@ -115,241 +135,76 @@ class _MyAppState extends State<GoogleMapWidget> {
               myLocationEnabled: true,
               myLocationButtonEnabled: true,
               markers: _markers,
+              onCameraIdle: _onCameraIdle,
             ),
             Container(
               margin: const EdgeInsets.symmetric(vertical: 8.0),
               height: 45.0,
-              child: ListView(
+              child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                children: [
-                  ElevatedButton(
-                    onPressed: () => _onSearchCategory("10000"),
-                    child: const Text("Arts and Entertainment"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => _onSearchCategory("13000"),
-                    child: const Text("Dining and Drinking"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => _onSearchCategory("14000"),
-                    child: const Text("Events"),
-                  ),
-                ],
+                itemCount: FoursquareCategories.values.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final category = FoursquareCategories.values[index];
+                  return _categoryButton(category.id, category.name);
+                },
               ),
             ),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              child: Container(
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8)),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        mapController.animateCamera(CameraUpdate.zoomOut());
+                      },
+                      icon: const Icon(
+                        Icons.remove,
+                        size: 28,
+                      ),
+                    ),
+                    Container(
+                      height: 30,
+                      decoration: BoxDecoration(
+                          border:
+                              Border.all(width: 0.5, color: Colors.black26)),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        mapController.animateCamera(CameraUpdate.zoomIn());
+                      },
+                      icon: const Icon(Icons.add, size: 28),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            _isLoading
+                ? const LinearProgressIndicator()
+                : const SizedBox(height: 0),
           ],
         ),
       ),
     );
   }
+
+  Widget _categoryButton(String category, String label) {
+    final isActive = _currentCategory == category;
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          foregroundColor:
+              isActive ? Theme.of(context).primaryColor : Colors.black45,
+        ),
+        onPressed: () => _onSearchCategory(category),
+        child: Text(label),
+      ),
+    );
+  }
 }
-
-
-//
-
-// class GoogleMapWidget extends StatefulWidget {
-//   const GoogleMapWidget({super.key});
-
-//   @override
-//   State<GoogleMapWidget> createState() => _MyAppState();
-// }
-
-// class _MyAppState extends State<GoogleMapWidget> {
-//   late GoogleMapController mapController;
-
-//   late LatLng _center;
-//   Set<Marker> _markers = {};
-//   late String _currentCategory;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _center = const LatLng(-33.86, 151.20);
-//     _getUserLocation();
-//   }
-
-//   void _onMapCreated(GoogleMapController controller) {
-//     mapController = controller;
-//   }
-
-//   _getUserLocation() async {
-//     bool serviceEnabled;
-//     LocationPermission permission;
-//     // Check if location services are enabled
-//     serviceEnabled = await Geolocator.isLocationServiceEnabled();
-//     if (!serviceEnabled) {
-//       return;
-//     }
-//     // Request permission to get the user's location
-//     permission = await Geolocator.checkPermission();
-//     if (permission == LocationPermission.deniedForever) {
-//       return;
-//     }
-//     if (permission == LocationPermission.denied) {
-//       permission = await Geolocator.requestPermission();
-//       if (permission != LocationPermission.whileInUse &&
-//           permission != LocationPermission.always) {
-//         return;
-//       }
-//     }
-//     // Get the current location of the user
-//     final currentPosition = await Geolocator.getCurrentPosition();
-//     setState(() {
-//       _center = LatLng(currentPosition.latitude, currentPosition.longitude);
-//     });
-
-//     // Move the camera to the user's location
-//     mapController.animateCamera(
-//       CameraUpdate.newLatLng(_center),
-//     );
-//   }
-
-//   Future<void> searchPlaces(String category) async {
-//     _currentCategory = category;
-//     final String? apiKey = dotenv.env['FOURSQUARE_API_KEY'];
-//     final response = await http.get(
-//       Uri.parse(
-//         'https://api.foursquare.com/v3/places/search?ll=${_center.latitude},${_center.longitude}&categories=$category&radius=6000',
-//       ),
-//       headers: {
-//         'Authorization': apiKey!,
-//       },
-//     );
-
-//     if (response.statusCode == 200) {
-//       final data = json.decode(response.body);
-//       _updateMarkers(data['results']);
-//     } else {
-//       log("Failed to load places: ${response.statusCode}");
-//     }
-//   }
-
-//   void _updateMarkers(List<dynamic> places) {
-//     Set<Marker> newMarkers = {};
-
-//     for (var place in places) {
-//       final LatLng position = LatLng(
-//         place['geocodes']['main']['latitude'],
-//         place['geocodes']['main']['longitude'],
-//       );
-//       final String name = place['name'] ?? 'Unnamed Place';
-
-//       newMarkers.add(
-//         Marker(
-//           markerId: MarkerId(place['fsq_id']),
-//           position: position,
-//           infoWindow: InfoWindow(title: name),
-//         ),
-//       );
-//     }
-
-//     setState(() {
-//       _markers = newMarkers;
-//     });
-//   }
-
-//   void _onCameraIdle() async {
-//     // Get the current camera position
-//     final LatLngBounds visibleRegion = await mapController.getVisibleRegion();
-//     LatLng centerLatLng = LatLng(
-//       (visibleRegion.northeast.latitude + visibleRegion.southwest.latitude) / 2,
-//       (visibleRegion.northeast.longitude + visibleRegion.southwest.longitude) /
-//           2,
-//     );
-
-//     setState(() {
-//       _center = centerLatLng;
-//     });
-
-//     searchPlaces(_currentCategory);
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return SafeArea(
-//       child: Stack(
-//         children: [
-//           Expanded(
-//             child: GoogleMap(
-//               onMapCreated: _onMapCreated,
-//               initialCameraPosition: CameraPosition(
-//                 target: _center,
-//                 zoom: 15,
-//               ),
-//               myLocationEnabled: true,
-//               myLocationButtonEnabled: true,
-//               markers: _markers,
-//               onCameraIdle: _onCameraIdle,
-//             ),
-//           ),
-//           Container(
-//             margin: const EdgeInsets.symmetric(vertical: 8.0),
-//             height: 45.0,
-//             child: ListView(
-//               scrollDirection: Axis.horizontal,
-//               shrinkWrap: true,
-//               children: [
-//                 Container(
-//                   margin: const EdgeInsets.symmetric(horizontal: 8.0),
-//                   child: ElevatedButton(
-//                     onPressed: () => searchPlaces("10000"),
-//                     child: const Text("Arts and Entertainment"),
-//                   ),
-//                 ),
-//                 Container(
-//                   margin: const EdgeInsets.symmetric(horizontal: 8.0),
-//                   child: ElevatedButton(
-//                     onPressed: () => searchPlaces("13000"),
-//                     child: const Text("Dining and Drinking"),
-//                   ),
-//                 ),
-//                 Container(
-//                   margin: const EdgeInsets.symmetric(horizontal: 8.0),
-//                   child: ElevatedButton(
-//                     onPressed: () => searchPlaces("14000"),
-//                     child: const Text("Events"),
-//                   ),
-//                 ),
-//                 Container(
-//                   margin: const EdgeInsets.symmetric(horizontal: 8.0),
-//                   child: ElevatedButton(
-//                     onPressed: () => searchPlaces("19009"),
-//                     child: const Text("Hotels and Accommodation"),
-//                   ),
-//                 ),
-//                 Container(
-//                   margin: const EdgeInsets.symmetric(horizontal: 8.0),
-//                   child: ElevatedButton(
-//                     onPressed: () => searchPlaces("10027"),
-//                     child: const Text("Museums"),
-//                   ),
-//                 ),
-//                 Container(
-//                   margin: const EdgeInsets.symmetric(horizontal: 8.0),
-//                   child: ElevatedButton(
-//                     onPressed: () => searchPlaces("16000"),
-//                     child: const Text("Landmarks"),
-//                   ),
-//                 ),
-//                 Container(
-//                   margin: const EdgeInsets.symmetric(horizontal: 8.0),
-//                   child: ElevatedButton(
-//                     onPressed: () => searchPlaces("18000"),
-//                     child: const Text("Sports and Recreation"),
-//                   ),
-//                 ),
-//                 Container(
-//                   margin: const EdgeInsets.symmetric(horizontal: 8.0),
-//                   child: ElevatedButton(
-//                     onPressed: () => searchPlaces("17000"),
-//                     child: const Text("Stores"),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
