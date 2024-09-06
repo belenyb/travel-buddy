@@ -1,7 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -9,6 +7,7 @@ import '../blocs/foursquare_bloc/foursquare_bloc.dart';
 import '../blocs/foursquare_bloc/foursquare_bloc_event.dart';
 import '../blocs/foursquare_bloc/foursquare_bloc_state.dart';
 import '../models/foursquare_categories.dart';
+import 'place_details_sheet.dart';
 
 class GoogleMapWidget extends StatefulWidget {
   const GoogleMapWidget({super.key});
@@ -72,162 +71,7 @@ class _MyAppState extends State<GoogleMapWidget> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
-        return Container(
-          width: MediaQuery.of(context).size.width,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24.0),
-              topRight: Radius.circular(24.0),
-            ),
-          ),
-          child: SafeArea(
-            child: Wrap(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 30,
-                      margin: const EdgeInsets.only(top: 8, bottom: 10),
-                      child: const Divider(
-                        thickness: 3.5,
-                        height: 10,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Nombre del lugar',
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
-                              const Text("Av. Siempre Viva 1234, Buenos Aires"),
-                            ],
-                          ),
-                          Chip(
-                            label: Text(
-                              "Category",
-                              style:
-                                  Theme.of(context).chipTheme.secondaryLabelStyle,
-                            ),
-                          )
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const FaIcon(
-                                    FontAwesomeIcons.clock,
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text("18hs - 21hs",
-                                      style:
-                                          Theme.of(context).textTheme.bodyLarge),
-                                ],
-                              ),
-                              Text(
-                                "Now open!",
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge!
-                                    .copyWith(color: Colors.green[600]),
-                              )
-                            ],
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextButton(
-                                  onPressed: () {},
-                                  style: TextButton.styleFrom(
-                                      padding: EdgeInsets.zero,
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap),
-                                  child: const FaIcon(FontAwesomeIcons.facebookF,
-                                      size: 16)),
-                              TextButton(
-                                  onPressed: () {},
-                                  child: const FaIcon(FontAwesomeIcons.instagram,
-                                      size: 16)),
-                              TextButton(
-                                  onPressed: () {},
-                                  child: const FaIcon(FontAwesomeIcons.xTwitter,
-                                      size: 16)),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Image.network("https://picsum.photos/200"),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              "Description of the place maybe a bit longer we will add it later",
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text("4.5",
-                              style: Theme.of(context).textTheme.titleMedium),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          TextButton(
-                            onPressed: () {},
-                            child: const Row(
-                              children: [
-                                FaIcon(
-                                  FontAwesomeIcons.phone,
-                                  size: 16,
-                                ),
-                                SizedBox(width: 6),
-                                Text("011 1121 2121"),
-                              ],
-                            ),
-                          ),
-                          TextButton(
-                              onPressed: () {},
-                              child: const Row(children: [
-                                FaIcon(FontAwesomeIcons.globe),
-                                SizedBox(
-                                  width: 6,
-                                ),
-                                Text("website")
-                              ])),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
+        return PlaceDetailsSheet(markerId: markerId);
       },
     );
   }
