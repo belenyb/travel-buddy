@@ -3,9 +3,11 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:travel_buddy/models/place_spot_model.dart';
+
 class PlaceController extends GetxController {
   var placeDetails = Rx<PlaceDetails?>(null);
-  var placeData = Rx<Map>({});
+  final Rx<PlaceSpot?> placeData = Rx<PlaceSpot?>(null);
   var isLoading = true.obs;
   var errorMessage = ''.obs;
 
@@ -26,19 +28,22 @@ class PlaceController extends GetxController {
 
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-        placeData.value = {
-          "name": jsonResponse["name"] ?? "No name",
-          "address": jsonResponse["location"]["address"] ?? "No address",
-          "latitude": jsonResponse["geocodes"]["main"]["latitude"] ?? 0,
-          "longitude": jsonResponse["geocodes"]["main"]["longitude"] ?? 0,
-          "locality": jsonResponse["location"]["locality"] ?? "No locality",
-          "region": jsonResponse["location"]["region"] ?? "No region",
-          "category": jsonResponse["categories"][0]["name"] ?? "No category",
-          "categoryIcon": {
-            "prefix": jsonResponse["categories"][0]["icon"]["prefix"],
-            "suffix": jsonResponse["categories"][0]["icon"]["suffix"],
-          }
-        };
+
+        final PlaceSpot placeSpot = PlaceSpot(
+          name: jsonResponse["name"] ?? "No name",
+          latitude: jsonResponse["geocodes"]["main"]["latitude"] ?? 0,
+          longitude: jsonResponse["geocodes"]["main"]["longitude"] ?? 0,
+          address: jsonResponse["location"]["address"] ?? "No address",
+          locality: jsonResponse["location"]["locality"] ?? "No locality",
+          region: jsonResponse["location"]["region"] ?? "No region",
+          country: jsonResponse["location"]["country"],
+          category: jsonResponse["categories"][0]["name"] ?? "No category",
+          categoryIconPrefix: jsonResponse["categories"][0]["icon"]["prefix"],
+          categoryIconSuffix: jsonResponse["categories"][0]["icon"]["suffix"],
+          postcode: jsonResponse["location"]["postcode"] ?? "No postcode",
+        );
+        
+        placeData.value = placeSpot;
       } else {
         errorMessage.value = 'Failed to load place details';
       }

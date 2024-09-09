@@ -7,54 +7,9 @@ import 'package:travel_buddy/models/place_spot_model.dart';
 import '../app_state.dart';
 import '../getX/place_detail_controller.dart';
 
-class PlaceDetailsSheet extends StatelessWidget {
-  final String markerId;
-
-  const PlaceDetailsSheet({
-    Key? key,
-    required this.markerId,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final PlaceController placeController = Get.put(PlaceController());
-    placeController.fetchPlaceDetails(markerId);
-
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24.0),
-          topRight: Radius.circular(24.0),
-        ),
-      ),
-      child: Obx(() {
-        if (placeController.isLoading.value) {
-          return const SheetContent(isLoading: true);
-        }
-
-        if (placeController.errorMessage.value.isNotEmpty) {
-          return SheetContent(
-            isLoading: false,
-            errorMessage: placeController.errorMessage.value,
-          );
-        }
-
-        final place = placeController.placeData.value;
-
-        return SheetContent(
-          isLoading: false,
-          place: place,
-        );
-      }),
-    );
-  }
-}
-
 class SheetContent extends StatelessWidget {
   final bool isLoading;
-  final Map? place;
+  final PlaceSpot? place;
   final String? errorMessage;
 
   const SheetContent({
@@ -100,7 +55,7 @@ class SheetContent extends StatelessWidget {
                           isLoading
                               ? const Skeleton(width: 150, height: 30)
                               : Text(
-                                  place!["name"],
+                                  place?.name ?? "No name",
                                   style: Theme.of(context).textTheme.titleLarge,
                                 ),
                           if (isLoading) const SizedBox(height: 8),
@@ -111,12 +66,12 @@ class SheetContent extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      place!["address"],
+                                      place?.address ?? "No address",
                                       style:
                                           Theme.of(context).textTheme.bodyLarge,
                                     ),
                                     Text(
-                                        "${place!["locality"]}, ${place!["country"]}.")
+                                        "${place?.locality ?? 'No locality'}, ${place?.country ?? 'No country'}.")
                                   ],
                                 ),
                         ],
@@ -125,21 +80,23 @@ class SheetContent extends StatelessWidget {
                     isLoading
                         ? const Skeleton(width: 150, height: 55)
                         : Chip(
-                            // backgroundColor: Theme.of(context).primaryColor,
                             label: Row(
                               children: [
                                 Image.network(
-                                  "${place?["categoryIcon"]["prefix"]}32${place?["categoryIcon"]["suffix"]}",
-                                  color: Colors.black87,
+                                  "${place?.categoryIconPrefix ?? ''}32${place?.categoryIconSuffix ?? ''}",
+                                  color: Theme.of(context).primaryColor,
                                   errorBuilder: (context, error, stackTrace) {
                                     return const Text("😢");
                                   },
                                 ),
                                 Text(
-                                  place!["category"],
+                                  place?.category ?? "No category",
                                   style: Theme.of(context)
                                       .chipTheme
-                                      .secondaryLabelStyle,
+                                      .secondaryLabelStyle
+                                      ?.copyWith(
+                                          color:
+                                              Theme.of(context).primaryColor),
                                 ),
                               ],
                             ),
@@ -160,28 +117,21 @@ class SheetContent extends StatelessWidget {
                             ),
                             onPressed: () async {
                               final PlaceSpot favoriteSpot = PlaceSpot(
-                                  name: place?["name"] ?? "No name",
-                                  addedAt: DateTime.now(),
-                                  latitude: place?["latitude"] ?? 0,
-                                  longitude: place?["longitude"] ?? 0,
-                                  address: place?["address"] ?? "No address",
-                                  locality: place?["locality"] ?? "No locality",
-                                  region: place?["region"] ?? "No region",
-                                  postcode: place?["postcode"] ?? "No postcode",
-                                  category: place?["category"] ?? "No category",
-                                  categoryIcon: place?["categoryIcon"]
-                                                  ["prefix"] !=
-                                              "" &&
-                                          place?["categoryIcon"]["suffix"] != ""
-                                      ? {
-                                          "prefix": place?["categoryIcon"]
-                                                  ["prefix"] ??
-                                              "",
-                                          "suffix": place?["categoryIcon"]
-                                                  ["suffix"] ??
-                                              "",
-                                        }
-                                      : {});
+                                name: place?.name ?? "",
+                                addedAt: DateTime.now(),
+                                latitude: place?.latitude ?? 0.0,
+                                longitude: place?.longitude ?? 0.0,
+                                address: place?.address ?? "",
+                                locality: place?.locality,
+                                region: place?.region ?? "",
+                                postcode: place?.postcode,
+                                category: place?.category ?? "",
+                                categoryIconPrefix:
+                                    place?.categoryIconPrefix ?? "",
+                                categoryIconSuffix:
+                                    place?.categoryIconSuffix ?? "",
+                                country: place?.country ?? "",
+                              );
 
                               try {
                                 User? user = AppState.currentUser;
@@ -194,7 +144,8 @@ class SheetContent extends StatelessWidget {
                                           .collection('favorites');
 
                                   // Add the favorite spot to the collection
-                                  await favoritesCollection.add(favoriteSpot);
+                                  await favoritesCollection
+                                      .add(favoriteSpot.toMap());
 
                                   debugPrint(
                                       'Favorite spot added successfully!');
@@ -206,127 +157,6 @@ class SheetContent extends StatelessWidget {
                               }
                             },
                           ),
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    //   children: [
-                    //     Column(
-                    //       crossAxisAlignment: CrossAxisAlignment.start,
-                    //       children: [
-                    //         isLoading
-                    //             ? const Skeleton(width: 130, height: 25)
-                    //             : Row(
-                    //                 children: [
-                    //                   const FaIcon(FontAwesomeIcons.clock,
-                    //                       size: 16),
-                    //                   const SizedBox(width: 6),
-                    //                   // Text(place!.hours.display,
-                    //                   Text("place!.hours.display",
-                    //                       style: Theme.of(context)
-                    //                           .textTheme
-                    //                           .bodyLarge),
-                    //                 ],
-                    //               ),
-                    //         if (isLoading) const SizedBox(height: 4),
-                    // if (place!.hours.openNow != null)
-                    // isLoading
-                    // ? const Skeleton(width: 100, height: 17)
-                    // : Text(
-                    // "place!.hours.display",
-                    // place!.hours.openNow == true
-                    //     ? "Now open!"
-                    //     : "Closed",
-                    // style: Theme.of(context)
-                    // .textTheme
-                    // .bodyLarge!
-                    // .copyWith(
-                    // color:
-                    // place!.hours.openNow == true
-                    // ?
-                    // Colors.green[600]
-                    // : Colors.red[600],
-                    // ),
-                    // ),
-                    //     ],
-                    //   ),
-                    //   isLoading
-                    //       ? const Skeleton(width: 200, height: 30)
-                    //       : Row(
-                    //           mainAxisSize: MainAxisSize.min,
-                    //           children: [
-                    //             TextButton(
-                    //               onPressed: () {},
-                    //               style: TextButton.styleFrom(
-                    //                   padding: EdgeInsets.zero,
-                    //                   tapTargetSize:
-                    //                       MaterialTapTargetSize.shrinkWrap),
-                    //               child: const FaIcon(FontAwesomeIcons.facebookF,
-                    //                   size: 16),
-                    //             ),
-                    //             TextButton(
-                    //               onPressed: () {},
-                    //               child: const FaIcon(FontAwesomeIcons.instagram,
-                    //                   size: 16),
-                    //             ),
-                    //             TextButton(
-                    //               onPressed: () {},
-                    //               child: const FaIcon(FontAwesomeIcons.xTwitter,
-                    //                   size: 16),
-                    //             ),
-                    //           ],
-                    //         ),
-                    // ],
-                    // ),
-                    // const SizedBox(height: 12),
-                    // if (place!.photos.isNotEmpty)
-                    // isLoading
-                    // ? const Skeleton(width: 200, height: 200)
-                    // : Image.network(place!.photos.first.tip.url),
-                    // const SizedBox(height: 12),
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.center,
-                    //   children: [
-                    //     Expanded(
-                    //       child: isLoading
-                    //           ? const Skeleton(width: 200, height: 50)
-                    //           : Text(
-                    //               place!.description,
-                    //               style: Theme.of(context).textTheme.titleMedium,
-                    //             ),
-                    //     ),
-                    //     const SizedBox(width: 12),
-                    //     isLoading
-                    //         ? const Skeleton(width: 40, height: 30)
-                    //         : Text(place!.rating.toString(),
-                    //             style: Theme.of(context).textTheme.titleMedium),
-                    //   ],
-                    // ),
-                    // const SizedBox(height: 12),
-                    // isLoading
-                    //     ? const Skeleton(width: 240, height: 30)
-                    //     : Row(
-                    //         children: [
-                    //           TextButton(
-                    //             onPressed: () {},
-                    //             child: Row(
-                    //               children: [
-                    //                 const FaIcon(FontAwesomeIcons.phone, size: 16),
-                    //                 const SizedBox(width: 6),
-                    //                 Text(place!.tel),
-                    //               ],
-                    //             ),
-                    //           ),
-                    //           TextButton(
-                    //             onPressed: () {},
-                    //             child: Row(
-                    //               children: [
-                    //                 const FaIcon(FontAwesomeIcons.globe),
-                    //                 const SizedBox(width: 6),
-                    //                 Text(place!.website),
-                    //               ],
-                    //             ),
-                    //           ),
-                    //         ],
-                    //       ),
                     if (isLoading) const SizedBox(height: 16),
                     if (errorMessage != null)
                       Padding(
@@ -347,225 +177,51 @@ class SheetContent extends StatelessWidget {
   }
 }
 
-// import 'package:flutter/material.dart';
-// import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+//
+class PlaceDetailsSheet extends StatelessWidget {
+  final String markerId;
 
-// class PlaceDetailsSheet extends StatelessWidget {
-//   final String markerId;
-//   const PlaceDetailsSheet({
-//     super.key,
-//     required this.markerId,
-//   });
+  const PlaceDetailsSheet({
+    Key? key,
+    required this.markerId,
+  }) : super(key: key);
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       width: MediaQuery.of(context).size.width,
-//       decoration: const BoxDecoration(
-//         color: Colors.white,
-//         borderRadius: BorderRadius.only(
-//           topLeft: Radius.circular(24.0),
-//           topRight: Radius.circular(24.0),
-//         ),
-//       ),
-//       child: FutureBuilder(
-//         future: Future.delayed(const Duration(seconds: 4)),
-//         builder: (BuildContext context, AsyncSnapshot snapshot) {
-//           if (snapshot.connectionState == ConnectionState.waiting) {
-//             return SheetContent(isLoading: true);
-//           } else {
-//             return SheetContent(isLoading: false);
-//           }
-//         },
-//       ),
-//     );
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    final PlaceController placeController = Get.put(PlaceController());
+    placeController.fetchPlaceDetails(markerId);
 
-// class SheetContent extends StatelessWidget {
-//   final bool isLoading;
-//   const SheetContent({
-//     super.key,
-//     required this.isLoading,
-//   });
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24.0),
+          topRight: Radius.circular(24.0),
+        ),
+      ),
+      child: Obx(() {
+        if (placeController.isLoading.value) {
+          return const SheetContent(isLoading: true);
+        }
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return SafeArea(
-//       child: Wrap(
-//         children: [
-//           Row(
-//             mainAxisAlignment: MainAxisAlignment.center,
-//             children: [
-//               Container(
-//                 width: 30,
-//                 margin: const EdgeInsets.only(top: 8, bottom: 10),
-//                 child: const Divider(
-//                   thickness: 3.5,
-//                   height: 10,
-//                   color: Colors.black54,
-//                 ),
-//               ),
-//             ],
-//           ),
-//           Padding(
-//             padding:
-//                 const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 Row(
-//                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                   children: [
-//                     Column(
-//                       crossAxisAlignment: CrossAxisAlignment.start,
-//                       children: [
-//                         isLoading
-//                             ? const Skeleton(width: 150, height: 25)
-//                             : Text(
-//                                 'Nombre del lugar',
-//                                 style: Theme.of(context).textTheme.titleLarge,
-//                               ),
-//                         if (isLoading) const SizedBox(height: 8),
-//                         isLoading
-//                             ? const Skeleton(width: 200, height: 17)
-//                             : const Text("Av. Siempre Viva 1234, Buenos Aires"),
-//                       ],
-//                     ),
-//                     isLoading
-//                         ? const Skeleton(width: 100, height: 42)
-//                         : Chip(
-//                             label: Text(
-//                               "Category",
-//                               style: Theme.of(context)
-//                                   .chipTheme
-//                                   .secondaryLabelStyle,
-//                             ),
-//                           )
-//                   ],
-//                 ),
-//                 const SizedBox(height: 12),
-//                 Row(
-//                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                   children: [
-//                     Column(
-//                       crossAxisAlignment: CrossAxisAlignment.start,
-//                       children: [
-//                         isLoading
-//                             ? const Skeleton(width: 130, height: 25)
-//                             : Row(
-//                                 children: [
-//                                   const FaIcon(
-//                                     FontAwesomeIcons.clock,
-//                                     size: 16,
-//                                   ),
-//                                   const SizedBox(width: 6),
-//                                   Text("18hs - 21hs",
-//                                       style: Theme.of(context)
-//                                           .textTheme
-//                                           .bodyLarge),
-//                                 ],
-//                               ),
-//                         if (isLoading) const SizedBox(height: 4),
-//                         isLoading
-//                             ? const Skeleton(width: 100, height: 17)
-//                             : Text(
-//                                 "Now open!",
-//                                 style: Theme.of(context)
-//                                     .textTheme
-//                                     .bodyLarge!
-//                                     .copyWith(color: Colors.green[600]),
-//                               )
-//                       ],
-//                     ),
-//                     isLoading
-//                         ? const Skeleton(width: 200, height: 30)
-//                         : Row(
-//                             mainAxisSize: MainAxisSize.min,
-//                             children: [
-//                               TextButton(
-//                                   onPressed: () {},
-//                                   style: TextButton.styleFrom(
-//                                       padding: EdgeInsets.zero,
-//                                       tapTargetSize:
-//                                           MaterialTapTargetSize.shrinkWrap),
-//                                   child: const FaIcon(
-//                                       FontAwesomeIcons.facebookF,
-//                                       size: 16)),
-//                               TextButton(
-//                                   onPressed: () {},
-//                                   child: const FaIcon(
-//                                       FontAwesomeIcons.instagram,
-//                                       size: 16)),
-//                               TextButton(
-//                                   onPressed: () {},
-//                                   child: const FaIcon(FontAwesomeIcons.xTwitter,
-//                                       size: 16)),
-//                             ],
-//                           ),
-//                   ],
-//                 ),
-//                 const SizedBox(height: 12),
-//                 isLoading
-//                     ? const Skeleton(width: 200, height: 200)
-//                     : Image.network("https://picsum.photos/200"),
-//                 const SizedBox(height: 12),
-//                 Row(
-//                   mainAxisAlignment: MainAxisAlignment.center,
-//                   children: [
-//                     Expanded(
-//                       child: isLoading
-//                           ? const Skeleton(width: 200, height: 50)
-//                           : Text(
-//                               "Description of the place maybe a bit longer we will add it later",
-//                               style: Theme.of(context).textTheme.titleMedium,
-//                             ),
-//                     ),
-//                     const SizedBox(width: 12),
-//                     isLoading
-//                         ? const Skeleton(width: 40, height: 30)
-//                         : Text("4.5",
-//                             style: Theme.of(context).textTheme.titleMedium),
-//                   ],
-//                 ),
-//                 const SizedBox(height: 12),
-//                 isLoading
-//                     ? const Skeleton(width: 240, height: 30)
-//                     : Row(
-//                         children: [
-//                           TextButton(
-//                             onPressed: () {},
-//                             child: const Row(
-//                               children: [
-//                                 FaIcon(
-//                                   FontAwesomeIcons.phone,
-//                                   size: 16,
-//                                 ),
-//                                 SizedBox(width: 6),
-//                                 Text("011 1121 2121"),
-//                               ],
-//                             ),
-//                           ),
-//                           TextButton(
-//                               onPressed: () {},
-//                               child: const Row(children: [
-//                                 FaIcon(FontAwesomeIcons.globe),
-//                                 SizedBox(
-//                                   width: 6,
-//                                 ),
-//                                 Text("website")
-//                               ])),
-//                         ],
-//                       ),
-//                 if (isLoading) const SizedBox(height: 16),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
+        if (placeController.errorMessage.value.isNotEmpty) {
+          return SheetContent(
+            isLoading: false,
+            errorMessage: placeController.errorMessage.value,
+          );
+        }
+
+        final place = placeController.placeData.value;
+
+        return SheetContent(
+          isLoading: false,
+          place: place!,
+        );
+      }),
+    );
+  }
+}
 
 class Skeleton extends StatefulWidget {
   const Skeleton({Key? key, this.height, this.width}) : super(key: key);
