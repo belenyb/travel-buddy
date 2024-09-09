@@ -5,13 +5,13 @@ import 'dart:convert';
 
 class PlaceController extends GetxController {
   var placeDetails = Rx<PlaceDetails?>(null);
+  var placeData = Rx<Map>({});
   var isLoading = true.obs;
   var errorMessage = ''.obs;
 
   final String apiKey = dotenv.env['FOURSQUARE_API_KEY']!;
 
   Future<void> fetchPlaceDetails(String id) async {
-    print("fetchPlaceDetails");
     isLoading.value = true;
     errorMessage.value = '';
 
@@ -26,9 +26,19 @@ class PlaceController extends GetxController {
 
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-        print(jsonResponse);
-        placeDetails.value = PlaceDetails.fromJson(jsonResponse);
-        print(placeDetails.value);
+        placeData.value = {
+          "name": jsonResponse["name"] ?? "No name",
+          "address": jsonResponse["location"]["address"] ?? "No address",
+          "latitude": jsonResponse["geocodes"]["main"]["latitude"] ?? 0,
+          "longitude": jsonResponse["geocodes"]["main"]["longitude"] ?? 0,
+          "locality": jsonResponse["location"]["locality"] ?? "No locality",
+          "region": jsonResponse["location"]["region"] ?? "No region",
+          "category": jsonResponse["categories"][0]["name"] ?? "No category",
+          "categoryIcon": {
+            "prefix": jsonResponse["categories"][0]["icon"]["prefix"],
+            "suffix": jsonResponse["categories"][0]["icon"]["suffix"],
+          }
+        };
       } else {
         errorMessage.value = 'Failed to load place details';
       }
@@ -179,11 +189,11 @@ String geocodesToJson(Geocodes data) => json.encode(data.toJson());
 final mockDropOff = DropOff(latitude: 0, longitude: 0);
 
 class Geocodes {
-  DropOff dropOff;
-  DropOff frontDoor;
+  DropOff? dropOff;
+  DropOff? frontDoor;
   DropOff main;
-  DropOff road;
-  DropOff roof;
+  DropOff? road;
+  DropOff? roof;
 
   Geocodes({
     required this.dropOff,
@@ -197,26 +207,23 @@ class Geocodes {
         dropOff: json["drop_off"] == null
             ? mockDropOff
             : DropOff.fromJson(json["drop_off"]),
-        frontDoor: json["drop_off"] == null
+        frontDoor: json["front_door"] == null
             ? mockDropOff
             : DropOff.fromJson(json["front_door"]),
-        main: json["drop_off"] == null
-            ? mockDropOff
-            : DropOff.fromJson(json["main"]),
-        road: json["drop_off"] == null
-            ? mockDropOff
-            : DropOff.fromJson(json["road"]),
-        roof: json["drop_off"] == null
-            ? mockDropOff
-            : DropOff.fromJson(json["roof"]),
+        main:
+            json["main"] == null ? mockDropOff : DropOff.fromJson(json["main"]),
+        road:
+            json["road"] == null ? mockDropOff : DropOff.fromJson(json["road"]),
+        roof:
+            json["roof"] == null ? mockDropOff : DropOff.fromJson(json["roof"]),
       );
 
   Map<String, dynamic> toJson() => {
-        "drop_off": dropOff.toJson(),
-        "front_door": frontDoor.toJson(),
+        "drop_off": dropOff?.toJson(),
+        "front_door": frontDoor?.toJson(),
         "main": main.toJson(),
-        "road": road.toJson(),
-        "roof": roof.toJson(),
+        "road": road?.toJson(),
+        "roof": roof?.toJson(),
       };
 }
 

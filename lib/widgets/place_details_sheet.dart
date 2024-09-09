@@ -1,6 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:travel_buddy/models/place_spot_model.dart';
+import '../app_state.dart';
 import '../getX/place_detail_controller.dart';
 
 class PlaceDetailsSheet extends StatelessWidget {
@@ -37,11 +41,11 @@ class PlaceDetailsSheet extends StatelessWidget {
           );
         }
 
-        final place = placeController.placeDetails.value;
+        final place = placeController.placeData.value;
 
         return SheetContent(
           isLoading: false,
-          place: place!,
+          place: place,
         );
       }),
     );
@@ -50,7 +54,7 @@ class PlaceDetailsSheet extends StatelessWidget {
 
 class SheetContent extends StatelessWidget {
   final bool isLoading;
-  final PlaceDetails? place;
+  final Map? place;
   final String? errorMessage;
 
   const SheetContent({
@@ -96,9 +100,9 @@ class SheetContent extends StatelessWidget {
                           isLoading
                               ? const Skeleton(width: 150, height: 30)
                               : Text(
-                                place!.name,
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
+                                  place!["name"],
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
                           if (isLoading) const SizedBox(height: 8),
                           isLoading
                               ? const Skeleton(width: 200, height: 40)
@@ -107,25 +111,37 @@ class SheetContent extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      place!.location.address,
+                                      place!["address"],
                                       style:
                                           Theme.of(context).textTheme.bodyLarge,
                                     ),
                                     Text(
-                                        "${place!.location.locality}, ${place!.location.country}.")
+                                        "${place!["locality"]}, ${place!["country"]}.")
                                   ],
                                 ),
                         ],
                       ),
                     ),
                     isLoading
-                        ? const Skeleton(width: 100, height: 42)
+                        ? const Skeleton(width: 150, height: 55)
                         : Chip(
-                            label: Text(
-                              place!.categories.first.name,
-                              style: Theme.of(context)
-                                  .chipTheme
-                                  .secondaryLabelStyle,
+                            // backgroundColor: Theme.of(context).primaryColor,
+                            label: Row(
+                              children: [
+                                Image.network(
+                                  "${place?["categoryIcon"]["prefix"]}32${place?["categoryIcon"]["suffix"]}",
+                                  color: Colors.black87,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Text("😢");
+                                  },
+                                ),
+                                Text(
+                                  place!["category"],
+                                  style: Theme.of(context)
+                                      .chipTheme
+                                      .secondaryLabelStyle,
+                                ),
+                              ],
                             ),
                           ),
                   ],
@@ -142,140 +158,186 @@ class SheetContent extends StatelessWidget {
                               FontAwesomeIcons.star,
                               size: 18,
                             ),
-                            onPressed: () {},
+                            onPressed: () async {
+                              final PlaceSpot favoriteSpot = PlaceSpot(
+                                  name: place?["name"] ?? "No name",
+                                  addedAt: DateTime.now(),
+                                  latitude: place?["latitude"] ?? 0,
+                                  longitude: place?["longitude"] ?? 0,
+                                  address: place?["address"] ?? "No address",
+                                  locality: place?["locality"] ?? "No locality",
+                                  region: place?["region"] ?? "No region",
+                                  postcode: place?["postcode"] ?? "No postcode",
+                                  category: place?["category"] ?? "No category",
+                                  categoryIcon: place?["categoryIcon"]
+                                                  ["prefix"] !=
+                                              "" &&
+                                          place?["categoryIcon"]["suffix"] != ""
+                                      ? {
+                                          "prefix": place?["categoryIcon"]
+                                                  ["prefix"] ??
+                                              "",
+                                          "suffix": place?["categoryIcon"]
+                                                  ["suffix"] ??
+                                              "",
+                                        }
+                                      : {});
+
+                              try {
+                                User? user = AppState.currentUser;
+                                if (user != null) {
+                                  String userId = user.uid;
+                                  CollectionReference favoritesCollection =
+                                      FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(userId)
+                                          .collection('favorites');
+
+                                  // Add the favorite spot to the collection
+                                  await favoritesCollection.add(favoriteSpot);
+
+                                  debugPrint(
+                                      'Favorite spot added successfully!');
+                                } else {
+                                  debugPrint('User not logged in');
+                                }
+                              } catch (error) {
+                                debugPrint('Error adding favorite: $error');
+                              }
+                            },
                           ),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //   children: [
+                    //     Column(
+                    //       crossAxisAlignment: CrossAxisAlignment.start,
+                    //       children: [
+                    //         isLoading
+                    //             ? const Skeleton(width: 130, height: 25)
+                    //             : Row(
+                    //                 children: [
+                    //                   const FaIcon(FontAwesomeIcons.clock,
+                    //                       size: 16),
+                    //                   const SizedBox(width: 6),
+                    //                   // Text(place!.hours.display,
+                    //                   Text("place!.hours.display",
+                    //                       style: Theme.of(context)
+                    //                           .textTheme
+                    //                           .bodyLarge),
+                    //                 ],
+                    //               ),
+                    //         if (isLoading) const SizedBox(height: 4),
+                    // if (place!.hours.openNow != null)
+                    // isLoading
+                    // ? const Skeleton(width: 100, height: 17)
+                    // : Text(
+                    // "place!.hours.display",
+                    // place!.hours.openNow == true
+                    //     ? "Now open!"
+                    //     : "Closed",
+                    // style: Theme.of(context)
+                    // .textTheme
+                    // .bodyLarge!
+                    // .copyWith(
+                    // color:
+                    // place!.hours.openNow == true
+                    // ?
+                    // Colors.green[600]
+                    // : Colors.red[600],
+                    // ),
+                    // ),
+                    //     ],
+                    //   ),
+                    //   isLoading
+                    //       ? const Skeleton(width: 200, height: 30)
+                    //       : Row(
+                    //           mainAxisSize: MainAxisSize.min,
+                    //           children: [
+                    //             TextButton(
+                    //               onPressed: () {},
+                    //               style: TextButton.styleFrom(
+                    //                   padding: EdgeInsets.zero,
+                    //                   tapTargetSize:
+                    //                       MaterialTapTargetSize.shrinkWrap),
+                    //               child: const FaIcon(FontAwesomeIcons.facebookF,
+                    //                   size: 16),
+                    //             ),
+                    //             TextButton(
+                    //               onPressed: () {},
+                    //               child: const FaIcon(FontAwesomeIcons.instagram,
+                    //                   size: 16),
+                    //             ),
+                    //             TextButton(
+                    //               onPressed: () {},
+                    //               child: const FaIcon(FontAwesomeIcons.xTwitter,
+                    //                   size: 16),
+                    //             ),
+                    //           ],
+                    //         ),
+                    // ],
+                    // ),
+                    // const SizedBox(height: 12),
+                    // if (place!.photos.isNotEmpty)
+                    // isLoading
+                    // ? const Skeleton(width: 200, height: 200)
+                    // : Image.network(place!.photos.first.tip.url),
+                    // const SizedBox(height: 12),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.center,
+                    //   children: [
+                    //     Expanded(
+                    //       child: isLoading
+                    //           ? const Skeleton(width: 200, height: 50)
+                    //           : Text(
+                    //               place!.description,
+                    //               style: Theme.of(context).textTheme.titleMedium,
+                    //             ),
+                    //     ),
+                    //     const SizedBox(width: 12),
+                    //     isLoading
+                    //         ? const Skeleton(width: 40, height: 30)
+                    //         : Text(place!.rating.toString(),
+                    //             style: Theme.of(context).textTheme.titleMedium),
+                    //   ],
+                    // ),
+                    // const SizedBox(height: 12),
+                    // isLoading
+                    //     ? const Skeleton(width: 240, height: 30)
+                    //     : Row(
+                    //         children: [
+                    //           TextButton(
+                    //             onPressed: () {},
+                    //             child: Row(
+                    //               children: [
+                    //                 const FaIcon(FontAwesomeIcons.phone, size: 16),
+                    //                 const SizedBox(width: 6),
+                    //                 Text(place!.tel),
+                    //               ],
+                    //             ),
+                    //           ),
+                    //           TextButton(
+                    //             onPressed: () {},
+                    //             child: Row(
+                    //               children: [
+                    //                 const FaIcon(FontAwesomeIcons.globe),
+                    //                 const SizedBox(width: 6),
+                    //                 Text(place!.website),
+                    //               ],
+                    //             ),
+                    //           ),
+                    //         ],
+                    //       ),
+                    if (isLoading) const SizedBox(height: 16),
+                    if (errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          errorMessage!,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
                   ],
-                ),
-                // Row(
-                //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //   children: [
-                //     Column(
-                //       crossAxisAlignment: CrossAxisAlignment.start,
-                //       children: [
-                //         isLoading
-                //             ? const Skeleton(width: 130, height: 25)
-                //             : Row(
-                //                 children: [
-                //                   const FaIcon(FontAwesomeIcons.clock,
-                //                       size: 16),
-                //                   const SizedBox(width: 6),
-                //                   // Text(place!.hours.display,
-                //                   Text("place!.hours.display",
-                //                       style: Theme.of(context)
-                //                           .textTheme
-                //                           .bodyLarge),
-                //                 ],
-                //               ),
-                //         if (isLoading) const SizedBox(height: 4),
-                // if (place!.hours.openNow != null)
-                // isLoading
-                // ? const Skeleton(width: 100, height: 17)
-                // : Text(
-                // "place!.hours.display",
-                // place!.hours.openNow == true
-                //     ? "Now open!"
-                //     : "Closed",
-                // style: Theme.of(context)
-                // .textTheme
-                // .bodyLarge!
-                // .copyWith(
-                // color:
-                // place!.hours.openNow == true
-                // ?
-                // Colors.green[600]
-                // : Colors.red[600],
-                // ),
-                // ),
-                //     ],
-                //   ),
-                //   isLoading
-                //       ? const Skeleton(width: 200, height: 30)
-                //       : Row(
-                //           mainAxisSize: MainAxisSize.min,
-                //           children: [
-                //             TextButton(
-                //               onPressed: () {},
-                //               style: TextButton.styleFrom(
-                //                   padding: EdgeInsets.zero,
-                //                   tapTargetSize:
-                //                       MaterialTapTargetSize.shrinkWrap),
-                //               child: const FaIcon(FontAwesomeIcons.facebookF,
-                //                   size: 16),
-                //             ),
-                //             TextButton(
-                //               onPressed: () {},
-                //               child: const FaIcon(FontAwesomeIcons.instagram,
-                //                   size: 16),
-                //             ),
-                //             TextButton(
-                //               onPressed: () {},
-                //               child: const FaIcon(FontAwesomeIcons.xTwitter,
-                //                   size: 16),
-                //             ),
-                //           ],
-                //         ),
-                // ],
-                // ),
-                // const SizedBox(height: 12),
-                // if (place!.photos.isNotEmpty)
-                // isLoading
-                // ? const Skeleton(width: 200, height: 200)
-                // : Image.network(place!.photos.first.tip.url),
-                // const SizedBox(height: 12),
-                // Row(
-                //   mainAxisAlignment: MainAxisAlignment.center,
-                //   children: [
-                //     Expanded(
-                //       child: isLoading
-                //           ? const Skeleton(width: 200, height: 50)
-                //           : Text(
-                //               place!.description,
-                //               style: Theme.of(context).textTheme.titleMedium,
-                //             ),
-                //     ),
-                //     const SizedBox(width: 12),
-                //     isLoading
-                //         ? const Skeleton(width: 40, height: 30)
-                //         : Text(place!.rating.toString(),
-                //             style: Theme.of(context).textTheme.titleMedium),
-                //   ],
-                // ),
-                // const SizedBox(height: 12),
-                // isLoading
-                //     ? const Skeleton(width: 240, height: 30)
-                //     : Row(
-                //         children: [
-                //           TextButton(
-                //             onPressed: () {},
-                //             child: Row(
-                //               children: [
-                //                 const FaIcon(FontAwesomeIcons.phone, size: 16),
-                //                 const SizedBox(width: 6),
-                //                 Text(place!.tel),
-                //               ],
-                //             ),
-                //           ),
-                //           TextButton(
-                //             onPressed: () {},
-                //             child: Row(
-                //               children: [
-                //                 const FaIcon(FontAwesomeIcons.globe),
-                //                 const SizedBox(width: 6),
-                //                 Text(place!.website),
-                //               ],
-                //             ),
-                //           ),
-                //         ],
-                //       ),
-                if (isLoading) const SizedBox(height: 16),
-                if (errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      errorMessage!,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ),
+                )
               ],
             ),
           ),
