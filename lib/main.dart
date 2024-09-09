@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:travel_buddy/app_state.dart';
 import 'package:travel_buddy/auth/firebase_user_repository.dart';
-import 'package:travel_buddy/screens/home_screen.dart';
+import 'package:travel_buddy/screens/layout_screen.dart';
 import 'firebase_options.dart';
 import 'screens/auth_form_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -48,6 +48,7 @@ class _AppState extends State<App> {
     });
   }
 
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -57,14 +58,14 @@ class _AppState extends State<App> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       routes: {
-        '/home': (context) => const HomeScreen(),
+        '/main': (context) => const LayoutScreen(),
         '/auth': (context) => const AuthFormScreen(),
       },
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: _isAuthenticated ? const HomeScreen() : const AuthFormScreen(),
+      home: _isAuthenticated ? const LayoutScreen() : const AuthFormScreen(),
     );
   }
 }

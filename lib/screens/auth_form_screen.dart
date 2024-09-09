@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:travel_buddy/screens/home_screen.dart';
+import 'package:travel_buddy/screens/layout_screen.dart';
 import '../blocs/auth_bloc/auth_bloc.dart';
 
 class AuthFormScreen extends StatelessWidget {
@@ -69,7 +69,7 @@ class _AuthFormState extends State<AuthForm> {
                 break;
 
               case FormStatus.success:
-                Navigator.pushNamed(context, HomeScreen.routeName);
+                Navigator.pushNamed(context, LayoutScreen.routeName);
                 break;
               default:
             }

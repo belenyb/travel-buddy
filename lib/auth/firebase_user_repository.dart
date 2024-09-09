@@ -47,6 +47,7 @@ class FirebaseUserRepository implements UserRepository {
     try {
       await firebaseAuth.signInWithEmailAndPassword(
           email: email, password: password);
+      await getCurrentUser();
     } on FirebaseAuthException catch (e) {
       if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
         log('Invalid user credentials.');
@@ -62,7 +63,7 @@ class FirebaseUserRepository implements UserRepository {
   Future<void> signOut() async {
     try {
       await firebaseAuth.signOut();
-      AppState.isAuthenticated = true;
+      AppState.isAuthenticated = false;
       AppState.currentUser = null;
     } catch (e) {
       log(e.toString());
@@ -83,6 +84,7 @@ class FirebaseUserRepository implements UserRepository {
   Future<User?> getCurrentUser() async {
     try {
       User? currentUser = FirebaseAuth.instance.currentUser;
+      AppState.currentUser = currentUser;
       return currentUser;
     } catch (e) {
       log(e.toString());
