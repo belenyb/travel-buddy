@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter/material.dart' as materialIcons;
 import 'package:get/get.dart';
 import 'package:travel_buddy/models/place_spot_model.dart';
 import '../app_state.dart';
 import '../getX/place_detail_controller.dart';
 
-class SheetContent extends StatelessWidget {
+class SheetContent extends StatefulWidget {
   final bool isLoading;
   final PlaceSpot? place;
   final String? errorMessage;
@@ -18,6 +18,73 @@ class SheetContent extends StatelessWidget {
     this.place,
     this.errorMessage,
   }) : super(key: key);
+
+  @override
+  State<SheetContent> createState() => _SheetContentState();
+}
+
+class _SheetContentState extends State<SheetContent> {
+  bool isFavorite = false;
+  String? favoriteId;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfFavorite();
+  }
+
+  Future<void> _checkIfFavorite() async {
+    print("_checkIfFavorite");
+    final User? user = AppState.currentUser;
+
+    // if (user != null && widget.place != null) {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    debugPrint(firestore.toString());
+    final CollectionReference favoritesCollection =
+        firestore.collection('users').doc(user!.uid).collection('favorites');
+
+    final querySnapshot = await favoritesCollection
+        .where('name', isEqualTo: widget.place!.name)
+        .where('latitude', isEqualTo: widget.place!.latitude)
+        .where('longitude', isEqualTo: widget.place!.longitude)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      favoriteId = querySnapshot.docs[0].id;
+      setState(() {
+        isFavorite = true;
+      });
+    }
+  }
+
+  Future<void> removeFromFavorites() async {
+    final User? user = AppState.currentUser;
+
+    if (user != null && favoriteId != null) {
+      // final FirebaseFirestore firestore = FirebaseFirestore.instance;
+      // final CollectionReference favoritesCollection =
+      //     firestore.collection('users').doc(user.uid).collection('favorites');
+      String userId = user.uid;
+      dynamic favoritesCollection = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('favorites')
+          .get();
+
+      try {
+        await favoritesCollection.doc(favoriteId).delete();
+        setState(() {
+          isFavorite = false;
+          favoriteId = null;
+        });
+        debugPrint("Favorite deleted successfully!");
+      } catch (error) {
+        debugPrint(error.toString());
+      }
+    } else {
+      debugPrint("User not logged in or favorite ID unavailable.");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,45 +119,45 @@ class SheetContent extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          isLoading
+                          widget.isLoading
                               ? const Skeleton(width: 150, height: 30)
                               : Text(
-                                  place?.name ?? "No name",
+                                  widget.place?.name ?? "No name",
                                   style: Theme.of(context).textTheme.titleLarge,
                                 ),
-                          if (isLoading) const SizedBox(height: 8),
-                          isLoading
+                          if (widget.isLoading) const SizedBox(height: 8),
+                          widget.isLoading
                               ? const Skeleton(width: 200, height: 40)
                               : Column(
                                   mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      place?.address ?? "No address",
+                                      widget.place?.address ?? "No address",
                                       style:
                                           Theme.of(context).textTheme.bodyLarge,
                                     ),
                                     Text(
-                                        "${place?.locality ?? 'No locality'}, ${place?.country ?? 'No country'}.")
+                                        "${widget.place?.locality ?? 'No locality'}, ${widget.place?.country ?? 'No country'}.")
                                   ],
                                 ),
                         ],
                       ),
                     ),
-                    isLoading
+                    widget.isLoading
                         ? const Skeleton(width: 150, height: 55)
                         : Chip(
                             label: Row(
                               children: [
                                 Image.network(
-                                  "${place?.categoryIconPrefix ?? ''}32${place?.categoryIconSuffix ?? ''}",
+                                  "${widget.place?.categoryIconPrefix ?? ''}32${widget.place?.categoryIconSuffix ?? ''}",
                                   color: Theme.of(context).primaryColor,
                                   errorBuilder: (context, error, stackTrace) {
                                     return const Text("😢");
                                   },
                                 ),
                                 Text(
-                                  place?.category ?? "No category",
+                                  widget.place?.category ?? "No category",
                                   style: Theme.of(context)
                                       .chipTheme
                                       .secondaryLabelStyle
@@ -107,62 +174,75 @@ class SheetContent extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    isLoading
+                    widget.isLoading
                         ? const Skeleton(width: 140, height: 25)
                         : TextButton.icon(
-                            label: const Text("Add to favorites"),
-                            icon: const FaIcon(
-                              FontAwesomeIcons.star,
+                            label: Text(isFavorite
+                                ? "Remove from favorites"
+                                : "Add to favorites"),
+                            icon: materialIcons.Icon(
+                              isFavorite
+                                  ? Icons.star
+                                  : Icons.star_border_outlined,
                               size: 18,
                             ),
                             onPressed: () async {
-                              final PlaceSpot favoriteSpot = PlaceSpot(
-                                name: place?.name ?? "",
-                                addedAt: DateTime.now(),
-                                latitude: place?.latitude ?? 0.0,
-                                longitude: place?.longitude ?? 0.0,
-                                address: place?.address ?? "",
-                                locality: place?.locality,
-                                region: place?.region ?? "",
-                                postcode: place?.postcode,
-                                category: place?.category ?? "",
-                                categoryIconPrefix:
-                                    place?.categoryIconPrefix ?? "",
-                                categoryIconSuffix:
-                                    place?.categoryIconSuffix ?? "",
-                                country: place?.country ?? "",
-                              );
+                              User? user = AppState.currentUser;
+                              _checkIfFavorite();
+                              if (isFavorite) {
+                                await removeFromFavorites();
+                              } else {
+                                final PlaceSpot favoriteSpot = PlaceSpot(
+                                  name: widget.place?.name ?? "",
+                                  addedAt: DateTime.now(),
+                                  latitude: widget.place?.latitude ?? 0.0,
+                                  longitude: widget.place?.longitude ?? 0.0,
+                                  address: widget.place?.address ?? "",
+                                  locality: widget.place?.locality,
+                                  region: widget.place?.region ?? "",
+                                  postcode: widget.place?.postcode,
+                                  category: widget.place?.category ?? "",
+                                  categoryIconPrefix:
+                                      widget.place?.categoryIconPrefix ?? "",
+                                  categoryIconSuffix:
+                                      widget.place?.categoryIconSuffix ?? "",
+                                  country: widget.place?.country ?? "",
+                                );
 
-                              try {
-                                User? user = AppState.currentUser;
-                                if (user != null) {
-                                  String userId = user.uid;
-                                  CollectionReference favoritesCollection =
-                                      FirebaseFirestore.instance
-                                          .collection('users')
-                                          .doc(userId)
-                                          .collection('favorites');
+                                try {
+                                  if (user != null) {
+                                    String userId = user.uid;
+                                    CollectionReference favoritesCollection =
+                                        FirebaseFirestore.instance
+                                            .collection('users')
+                                            .doc(userId)
+                                            .collection('favorites');
 
-                                  // Add the favorite spot to the collection
-                                  await favoritesCollection
-                                      .add(favoriteSpot.toMap());
+                                    // Add the favorite spot to the collection
+                                    await favoritesCollection
+                                        .add(favoriteSpot.toMap());
 
-                                  debugPrint(
-                                      'Favorite spot added successfully!');
-                                } else {
-                                  debugPrint('User not logged in');
+                                    setState(() {
+                                      isFavorite = true;
+                                    });
+
+                                    debugPrint(
+                                        'Favorite spot added successfully!');
+                                  } else {
+                                    debugPrint('User not logged in');
+                                  }
+                                } catch (error) {
+                                  debugPrint('Error adding favorite: $error');
                                 }
-                              } catch (error) {
-                                debugPrint('Error adding favorite: $error');
                               }
                             },
                           ),
-                    if (isLoading) const SizedBox(height: 16),
-                    if (errorMessage != null)
+                    if (widget.isLoading) const SizedBox(height: 16),
+                    if (widget.errorMessage != null)
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Text(
-                          errorMessage!,
+                          widget.errorMessage!,
                           style: const TextStyle(color: Colors.red),
                         ),
                       ),
