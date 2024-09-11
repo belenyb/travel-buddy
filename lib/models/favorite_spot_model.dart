@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class PlaceSpot {
+class FavoriteSpot {
   final String name;
   final DateTime? addedAt;
   final double latitude;
@@ -16,7 +16,7 @@ class PlaceSpot {
   final String categoryIconPrefix;
   final String categoryIconSuffix;
 
-  PlaceSpot({
+  FavoriteSpot({
     required this.name,
     this.addedAt,
     required this.latitude,
@@ -49,8 +49,8 @@ class PlaceSpot {
   }
 
   // Create a FavoriteSpot object from Firestore map
-  factory PlaceSpot.fromMap(Map<String, dynamic> map) {
-    return PlaceSpot(
+  factory FavoriteSpot.fromMap(Map<String, dynamic> map) {
+    return FavoriteSpot(
       name: map['name'] ?? "No name",
       addedAt: (map['addedAt'] as Timestamp?)?.toDate(),
       latitude: map['latitude']?.toDouble() ?? 0.0,
