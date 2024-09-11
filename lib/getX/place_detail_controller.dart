@@ -1,13 +1,17 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../app_state.dart';
 import '../models/favorite_spot_model.dart';
 
 class PlaceController extends GetxController {
   final Rx<FavoriteSpot?> placeData = Rx<FavoriteSpot?>(null);
   var isLoading = true.obs;
   var errorMessage = ''.obs;
+  final RxBool isFavorite = RxBool(false);
 
   final String apiKey = dotenv.env['FOURSQUARE_API_KEY']!;
 
@@ -41,6 +45,7 @@ class PlaceController extends GetxController {
         );
 
         placeData.value = placeSpot;
+        await checkIfFavorite(placeSpot);
       } else {
         errorMessage.value = 'Failed to load place details';
       }
@@ -48,6 +53,33 @@ class PlaceController extends GetxController {
       errorMessage.value = 'An error occurred: $e';
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> checkIfFavorite(FavoriteSpot? place) async {
+    final User? user = AppState.currentUser;
+
+    if (user != null && place != null) {
+      final FirebaseFirestore firestore = FirebaseFirestore.instance;
+      final CollectionReference favoritesCollection =
+          firestore.collection('users').doc(user.uid).collection('favorites');
+
+      // Use a more specific query to compare place details
+      final querySnapshot = await favoritesCollection
+          .where('name', isEqualTo: place.name)
+          .where('latitude', isEqualTo: place.latitude)
+          .where('longitude', isEqualTo: place.longitude)
+          .where('address', isEqualTo: place.address)
+          .where('locality', isEqualTo: place.locality)
+          .where('region', isEqualTo: place.region)
+          .where('postcode', isEqualTo: place.postcode)
+          .where('category', isEqualTo: place.category)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final String favoriteId = querySnapshot.docs[0].id;
+        isFavorite.value = favoriteId != "";
+      }
     }
   }
 }

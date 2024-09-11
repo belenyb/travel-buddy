@@ -24,37 +24,7 @@ class SheetContent extends StatefulWidget {
 }
 
 class _SheetContentState extends State<SheetContent> {
-  bool isFavorite = false;
   String? favoriteId;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkIfFavorite();
-  }
-
-  Future<void> _checkIfFavorite() async {
-    final User? user = AppState.currentUser;
-
-    if (user != null && widget.place != null) {
-      final FirebaseFirestore firestore = FirebaseFirestore.instance;
-      final CollectionReference favoritesCollection =
-          firestore.collection('users').doc(user.uid).collection('favorites');
-
-      final querySnapshot = await favoritesCollection
-          .where('name', isEqualTo: widget.place!.name)
-          .where('latitude', isEqualTo: widget.place!.latitude)
-          .where('longitude', isEqualTo: widget.place!.longitude)
-          .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        favoriteId = querySnapshot.docs[0].id;
-        setState(() {
-          isFavorite = true;
-        });
-      }
-    }
-  }
 
   Future<void> removeFromFavorites() async {
     final User? user = AppState.currentUser;
@@ -67,7 +37,6 @@ class _SheetContentState extends State<SheetContent> {
       try {
         await favoritesCollection.doc(favoriteId).delete();
         setState(() {
-          isFavorite = false;
           favoriteId = null;
         });
         log("Favorite deleted successfully!");
@@ -82,7 +51,6 @@ class _SheetContentState extends State<SheetContent> {
   @override
   Widget build(BuildContext context) {
     final PlaceController placeController = Get.put(PlaceController());
-    final bool isLoading = placeController.isLoading.value;
 
     return SafeArea(
       child: Wrap(
@@ -104,134 +72,143 @@ class _SheetContentState extends State<SheetContent> {
           Padding(
             padding:
                 const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Obx(
+              () {
+                final bool isLoading = placeController.isLoading.value;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          isLoading
-                              ? const Skeleton(width: 150, height: 30)
-                              : Text(
-                                  widget.place?.name ?? "No name",
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                          if (isLoading) const SizedBox(height: 8),
-                          isLoading
-                              ? const Skeleton(width: 200, height: 40)
-                              : Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              isLoading
+                                  ? const Skeleton(width: 150, height: 30)
+                                  : Text(
+                                      widget.place?.name ?? "No name",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleLarge,
+                                    ),
+                              if (isLoading) const SizedBox(height: 8),
+                              isLoading
+                                  ? const Skeleton(width: 200, height: 40)
+                                  : Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          widget.place?.address ?? "No address",
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge,
+                                        ),
+                                        Text(
+                                            "${widget.place?.locality ?? 'No locality'}, ${widget.place?.country ?? 'No country'}.")
+                                      ],
+                                    ),
+                            ],
+                          ),
+                        ),
+                        isLoading
+                            ? const Skeleton(width: 150, height: 55)
+                            : Chip(
+                                label: Row(
                                   children: [
-                                    Text(
-                                      widget.place?.address ?? "No address",
-                                      style:
-                                          Theme.of(context).textTheme.bodyLarge,
+                                    Image.network(
+                                      "${widget.place?.categoryIconPrefix ?? ''}32${widget.place?.categoryIconSuffix ?? ''}",
+                                      color: Theme.of(context).primaryColor,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return const Text("😢");
+                                      },
                                     ),
                                     Text(
-                                        "${widget.place?.locality ?? 'No locality'}, ${widget.place?.country ?? 'No country'}.")
+                                      widget.place?.category ?? "No category",
+                                      style: Theme.of(context)
+                                          .chipTheme
+                                          .secondaryLabelStyle
+                                          ?.copyWith(
+                                              color: Theme.of(context)
+                                                  .primaryColor),
+                                    ),
                                   ],
                                 ),
-                        ],
-                      ),
+                              ),
+                      ],
                     ),
-                    isLoading
-                        ? const Skeleton(width: 150, height: 55)
-                        : Chip(
-                            label: Row(
-                              children: [
-                                Image.network(
-                                  "${widget.place?.categoryIconPrefix ?? ''}32${widget.place?.categoryIconSuffix ?? ''}",
-                                  color: Theme.of(context).primaryColor,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const Text("😢");
-                                  },
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        isLoading
+                            ? const Skeleton(width: 140, height: 25)
+                            : TextButton.icon(
+                                label: Text(placeController.isFavorite.value
+                                    ? "Remove from favorites"
+                                    : "Add to favorites"),
+                                icon: material_icons.Icon(
+                                  placeController.isFavorite.value
+                                      ? Icons.star
+                                      : Icons.star_border_outlined,
+                                  size: 18,
                                 ),
-                                Text(
-                                  widget.place?.category ?? "No category",
-                                  style: Theme.of(context)
-                                      .chipTheme
-                                      .secondaryLabelStyle
-                                      ?.copyWith(
-                                          color:
-                                              Theme.of(context).primaryColor),
-                                ),
-                              ],
-                            ),
-                          ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    isLoading
-                        ? const Skeleton(width: 140, height: 25)
-                        : TextButton.icon(
-                            label: Text(isFavorite
-                                ? "Remove from favorites"
-                                : "Add to favorites"),
-                            icon: material_icons.Icon(
-                              isFavorite
-                                  ? Icons.star
-                                  : Icons.star_border_outlined,
-                              size: 18,
-                            ),
-                            onPressed: () async {
-                              User? user = AppState.currentUser;
-                              _checkIfFavorite();
-                              if (isFavorite) {
-                                await removeFromFavorites();
-                              } else {
-                                final FavoriteSpot favoriteSpot = FavoriteSpot(
-                                  name: widget.place?.name ?? "",
-                                  addedAt: DateTime.now(),
-                                  latitude: widget.place?.latitude ?? 0.0,
-                                  longitude: widget.place?.longitude ?? 0.0,
-                                  address: widget.place?.address ?? "",
-                                  locality: widget.place?.locality,
-                                  region: widget.place?.region ?? "",
-                                  postcode: widget.place?.postcode,
-                                  category: widget.place?.category ?? "",
-                                  categoryIconPrefix:
-                                      widget.place?.categoryIconPrefix ?? "",
-                                  categoryIconSuffix:
-                                      widget.place?.categoryIconSuffix ?? "",
-                                  country: widget.place?.country ?? "",
-                                );
-
-                                try {
-                                  if (user != null) {
-                                    String userId = user.uid;
-                                    CollectionReference favoritesCollection =
-                                        FirebaseFirestore.instance
-                                            .collection('users')
-                                            .doc(userId)
-                                            .collection('favorites');
-
-                                    // Add the favorite spot to the collection
-                                    await favoritesCollection
-                                        .add(favoriteSpot.toMap());
-
-                                    setState(() {
-                                      isFavorite = true;
-                                    });
-
-                                    log('Favorite spot added successfully!');
+                                onPressed: () async {
+                                  User? user = AppState.currentUser;
+                                  if (placeController.isFavorite.value) {
+                                    await removeFromFavorites();
                                   } else {
-                                    log('User not logged in');
+                                    final FavoriteSpot favoriteSpot =
+                                        FavoriteSpot(
+                                      name: widget.place?.name ?? "",
+                                      addedAt: DateTime.now(),
+                                      latitude: widget.place?.latitude ?? 0.0,
+                                      longitude: widget.place?.longitude ?? 0.0,
+                                      address: widget.place?.address ?? "",
+                                      locality: widget.place?.locality,
+                                      region: widget.place?.region ?? "",
+                                      postcode: widget.place?.postcode,
+                                      category: widget.place?.category ?? "",
+                                      categoryIconPrefix:
+                                          widget.place?.categoryIconPrefix ??
+                                              "",
+                                      categoryIconSuffix:
+                                          widget.place?.categoryIconSuffix ??
+                                              "",
+                                      country: widget.place?.country ?? "",
+                                    );
+
+                                    try {
+                                      if (user != null) {
+                                        String userId = user.uid;
+                                        CollectionReference
+                                            favoritesCollection =
+                                            FirebaseFirestore.instance
+                                                .collection('users')
+                                                .doc(userId)
+                                                .collection('favorites');
+
+                                        await favoritesCollection
+                                            .add(favoriteSpot.toMap());
+
+                                        log('Favorite spot added successfully!');
+                                      } else {
+                                        log('User not logged in');
+                                      }
+                                    } catch (error) {
+                                      log('Error adding favorite: $error');
+                                    }
                                   }
-                                } catch (error) {
-                                  log('Error adding favorite: $error');
-                                }
-                              }
-                            },
-                          ),
+                                },
+                              ),
+                      ],
+                    ),
                     if (isLoading) const SizedBox(height: 16),
                     if (placeController.errorMessage.value != "")
                       Padding(
@@ -242,8 +219,8 @@ class _SheetContentState extends State<SheetContent> {
                         ),
                       ),
                   ],
-                )
-              ],
+                );
+              },
             ),
           ),
         ],
