@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FavoriteSpot {
+  final String? id;
   final String name;
   final DateTime? addedAt;
   final double latitude;
@@ -17,6 +18,7 @@ class FavoriteSpot {
   final String categoryIconSuffix;
 
   FavoriteSpot({
+    this.id = "",
     required this.name,
     this.addedAt,
     required this.latitude,
@@ -31,26 +33,16 @@ class FavoriteSpot {
     required this.categoryIconSuffix,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'addedAt': addedAt ?? DateTime.now(),
-      'latitude': latitude,
-      'longitude': longitude,
-      'address': address,
-      'locality': locality ?? "",
-      'region': region,
-      'country': country,
-      'postcode': postcode ?? "",
-      'category': category,
-      "categoryIconPrefix": categoryIconPrefix,
-      "categoryIconSuffix": categoryIconSuffix,
-    };
+  // Convert Firestore document data to a FavoriteSpot object, including the document ID
+  factory FavoriteSpot.fromFirestore(DocumentSnapshot doc) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    return FavoriteSpot.fromMap(doc.id, data);  // Pass doc.id as the id
   }
 
-  // Create a FavoriteSpot object from Firestore map
-  factory FavoriteSpot.fromMap(Map<String, dynamic> map) {
+  // Convert Firestore map to FavoriteSpot object, with an id parameter
+  factory FavoriteSpot.fromMap(String id, Map<String, dynamic> map) {
     return FavoriteSpot(
+      id: id,
       name: map['name'] ?? "No name",
       addedAt: (map['addedAt'] as Timestamp?)?.toDate(),
       latitude: map['latitude']?.toDouble() ?? 0.0,
@@ -64,6 +56,24 @@ class FavoriteSpot {
       categoryIconPrefix: map['categoryIconPrefix'] ?? "",
       categoryIconSuffix: map['categoryIconSuffix'] ?? "",
     );
+  }
+
+  // Convert FavoriteSpot object to a Map to store in Firestore (excluding the id field)
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'addedAt': addedAt ?? DateTime.now(),
+      'latitude': latitude,
+      'longitude': longitude,
+      'address': address,
+      'locality': locality ?? "",
+      'region': region,
+      'country': country,
+      'postcode': postcode ?? "",
+      'category': category,
+      'categoryIconPrefix': categoryIconPrefix,
+      'categoryIconSuffix': categoryIconSuffix,
+    };
   }
 }
 
