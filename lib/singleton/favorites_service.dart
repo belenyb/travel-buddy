@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../models/favorite_spot_model.dart';
@@ -23,8 +24,8 @@ class _FavoritesService {
 
   final User? user = AppState.currentUser;
 
-  Future<List<FavoriteSpot>> fetchFavorites() async {
-    List<FavoriteSpot> favoritesList = <FavoriteSpot>[];
+  Future<List<FavoriteSpot>> fetchFavoritesStream() async {
+    List<FavoriteSpot> favoritesList = [];
     if (user != null) {
       try {
         final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -33,12 +34,11 @@ class _FavoritesService {
             .doc(user!.uid)
             .collection('favorites');
         favoritesCollection.snapshots().listen((snapshot) {
-          List<FavoriteSpot> favoritesList = snapshot.docs
+          favoritesList = snapshot.docs
               .map((doc) => FavoriteSpot.fromFirestore(doc))
               .toList();
           _favoritesController.add(favoritesList);
         });
-        return [];
       } catch (error) {
         // ignore: avoid_print
         print('Error fetching favorites: $error');
@@ -46,6 +46,23 @@ class _FavoritesService {
       }
     }
     return favoritesList;
+  }
+
+  Future<List<FavoriteSpot>> fetchFavoritesList() async {
+    List<FavoriteSpot> favorites = [];
+
+    try {
+      final FirebaseFirestore firestore = FirebaseFirestore.instance;
+      final CollectionReference favoritesCollection =
+          firestore.collection('users').doc(user!.uid).collection('favorites');
+      final querySnapshot = await favoritesCollection.get();
+      favorites = querySnapshot.docs
+          .map((doc) => FavoriteSpot.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      debugPrint("Error in fetchFavoritesList(): ${e.toString()}");
+    }
+    return favorites;
   }
 
   Future<void> deleteFavorite(String favoriteId) async {

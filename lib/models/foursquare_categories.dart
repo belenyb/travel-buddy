@@ -1,4 +1,5 @@
 enum FoursquareCategories {
+  favorites("Favorites", "1"),
   arts("Arts and Entertainment", "10000"),
   restaurant("Dining and Drinking", "13000"),
   events("Events", "14000"),

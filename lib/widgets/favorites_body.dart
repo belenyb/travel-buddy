@@ -14,7 +14,7 @@ class _FavoritesBodyState extends State<FavoritesBody> {
   @override
   void initState() {
     super.initState();
-    favoritesService.fetchFavorites();
+    favoritesService.fetchFavoritesStream();
   }
 
   @override

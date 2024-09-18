@@ -7,6 +7,7 @@ import '../blocs/foursquare_bloc/foursquare_bloc.dart';
 import '../blocs/foursquare_bloc/foursquare_bloc_event.dart';
 import '../blocs/foursquare_bloc/foursquare_bloc_state.dart';
 import '../models/foursquare_categories.dart';
+import '../singleton/favorites_service.dart';
 import 'place_details_sheet.dart';
 
 class GoogleMapWidget extends StatefulWidget {
@@ -21,6 +22,7 @@ class _MyAppState extends State<GoogleMapWidget> {
   late LatLng _center;
   Set<Marker> _markers = {};
   late String _currentCategory;
+  late MapType _mapType;
   bool _isLoading = false;
 
   @override
@@ -28,6 +30,7 @@ class _MyAppState extends State<GoogleMapWidget> {
     super.initState();
     _center = const LatLng(-33.86, 151.20);
     _currentCategory = "";
+    _mapType = MapType.normal;
     _getUserLocation();
   }
 
@@ -45,10 +48,33 @@ class _MyAppState extends State<GoogleMapWidget> {
     });
   }
 
-  void _onSearchCategory(String category) {
+  void _onSearchCategory(String category) async {
     _currentCategory = category;
-    final placesBloc = BlocProvider.of<FoursquareBloc>(context);
-    placesBloc.add(SearchPlacesEvent(category, _center));
+    if (category == "1") {
+      // Favorites
+      final favorites = await favoritesService.fetchFavoritesList();
+      _markers = {};
+      for (var favorite in favorites) {
+        _markers.add(
+          Marker(
+            markerId: MarkerId(favorite.id!),
+            position: LatLng(favorite.latitude, favorite.longitude),
+            icon:
+                BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+            consumeTapEvents: true,
+            onTap: () {
+              _onMarkerTapped(favorite.id!);
+            },
+          ),
+        );
+      }
+      _isLoading = false;
+      setState(() {});
+      return;
+    } else {
+      final placesBloc = BlocProvider.of<FoursquareBloc>(context);
+      placesBloc.add(SearchPlacesEvent(category, _center));
+    }
   }
 
   void _onCameraIdle() async {
@@ -120,6 +146,7 @@ class _MyAppState extends State<GoogleMapWidget> {
               myLocationButtonEnabled: true,
               markers: _markers,
               onCameraIdle: _onCameraIdle,
+              mapType: _mapType,
             ),
             Container(
               margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -136,36 +163,53 @@ class _MyAppState extends State<GoogleMapWidget> {
             Positioned(
               bottom: 0,
               left: 0,
-              child: Container(
-                margin: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8)),
-                child: Row(
-                  children: [
-                    IconButton(
+              child: Row(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8)),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            mapController.animateCamera(CameraUpdate.zoomOut());
+                          },
+                          icon: const Icon(
+                            Icons.remove,
+                            size: 28,
+                          ),
+                        ),
+                        Container(
+                          height: 30,
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  width: 0.5, color: Colors.black26)),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            mapController.animateCamera(CameraUpdate.zoomIn());
+                          },
+                          icon: const Icon(Icons.add, size: 28),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    decoration: const BoxDecoration(
+                        color: Colors.white, shape: BoxShape.rectangle),
+                    child: IconButton(
                       onPressed: () {
-                        mapController.animateCamera(CameraUpdate.zoomOut());
+                        _mapType = _mapType == MapType.normal
+                            ? MapType.satellite
+                            : MapType.normal;
+                        setState(() {});
                       },
-                      icon: const Icon(
-                        Icons.remove,
-                        size: 28,
-                      ),
+                      icon: const Icon(Icons.satellite_alt),
                     ),
-                    Container(
-                      height: 30,
-                      decoration: BoxDecoration(
-                          border:
-                              Border.all(width: 0.5, color: Colors.black26)),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        mapController.animateCamera(CameraUpdate.zoomIn());
-                      },
-                      icon: const Icon(Icons.add, size: 28),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
             _isLoading
