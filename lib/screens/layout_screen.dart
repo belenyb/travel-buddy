@@ -15,6 +15,8 @@ class LayoutScreen extends StatefulWidget {
 }
 
 class _LayoutScreenState extends State<LayoutScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   int selectedIndex = 0;
   static const List<Widget> widgetOptions = <Widget>[
     HomeBody(),
@@ -22,9 +24,14 @@ class _LayoutScreenState extends State<LayoutScreen> {
   ];
 
   void onItemTapped(int index) {
-    setState(() {
-      selectedIndex = index;
-    });
+    if (index == 1) {
+      // Open the drawer using the GlobalKey
+      _scaffoldKey.currentState?.openEndDrawer();
+    } else {
+      setState(() {
+        selectedIndex = index;
+      });
+    }
   }
 
   @override
@@ -33,6 +40,24 @@ class _LayoutScreenState extends State<LayoutScreen> {
     final User? currentUser = AppState.currentUser;
 
     return Scaffold(
+        key: _scaffoldKey,
+        endDrawer: Drawer(
+          child: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    "Favorites",
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                const Expanded(child: FavoritesBody()),
+              ],
+            ),
+          ),
+        ),
         appBar: AppBar(
           leading: Icon(
             Icons.travel_explore,
@@ -49,8 +74,12 @@ class _LayoutScreenState extends State<LayoutScreen> {
             ),
           ],
         ),
-        body: Center(
-          child: widgetOptions.elementAt(selectedIndex),
+        body: Builder(
+          builder: (BuildContext innerContext) {
+            return Center(
+              child: widgetOptions.elementAt(selectedIndex),
+            );
+          },
         ),
         bottomNavigationBar: CustomBottomNavigationBar(
           selectedIndex: selectedIndex,
