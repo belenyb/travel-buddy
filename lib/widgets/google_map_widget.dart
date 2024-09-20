@@ -63,7 +63,7 @@ class _MyAppState extends State<GoogleMapWidget> {
                 BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
             consumeTapEvents: true,
             onTap: () {
-              _onMarkerTapped(favorite.id!);
+              _onMarkerTapped(favorite.foursquareId);
             },
           ),
         );
@@ -92,12 +92,12 @@ class _MyAppState extends State<GoogleMapWidget> {
     if (_currentCategory != "") _onSearchCategory(_currentCategory);
   }
 
-  void _onMarkerTapped(String markerId) {
+  void _onMarkerTapped(String foursquareId) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
-        return PlaceDetailsSheet(markerId: markerId);
+        return PlaceDetailsSheet(foursquareId: foursquareId);
       },
     );
   }

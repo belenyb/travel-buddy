@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get.dart';
 import 'package:travel_buddy/widgets/favorites_body.dart';
 import '../app_state.dart';
 import '../auth/firebase_user_repository.dart';
@@ -69,7 +70,7 @@ class _LayoutScreenState extends State<LayoutScreen> {
               icon: const Icon(Icons.logout_outlined),
               onPressed: () async {
                 await userRepository.signOut();
-                Navigator.pushReplacementNamed(context, "/auth");
+                Get.toNamed("/auth");
               },
             ),
           ],

@@ -159,7 +159,7 @@ class PasswordFormField extends StatefulWidget {
   final Function(String) onChanged;
   final TextEditingController controller;
 
-  PasswordFormField(
+  const PasswordFormField(
       {super.key, required this.onChanged, required this.controller});
 
   @override

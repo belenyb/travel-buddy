@@ -5,17 +5,17 @@ import '../models/favorite_spot_model.dart';
 import 'place_details_sheet_content.dart';
 
 class PlaceDetailsSheet extends StatelessWidget {
-  final String markerId;
+  final String foursquareId;
 
   const PlaceDetailsSheet({
     Key? key,
-    required this.markerId,
+    required this.foursquareId,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final PlaceController placeController = Get.put(PlaceController());
-    placeController.fetchPlaceDetails(markerId);
+    placeController.fetchPlaceDetails(foursquareId);
 
     return Container(
       width: MediaQuery.of(context).size.width,

@@ -165,7 +165,7 @@ class _SheetContentState extends State<SheetContent> {
                       ],
                     ),
                     if (isLoading) const SizedBox(height: 16),
-                    if (placeController.errorMessage.value != "")
+                    if (placeController.errorMessage.value.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Text(

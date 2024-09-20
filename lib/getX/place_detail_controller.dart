@@ -41,18 +41,18 @@ class PlaceController extends GetxController {
         final jsonResponse = json.decode(response.body);
 
         final FavoriteSpot placeSpot = FavoriteSpot(
-          name: jsonResponse["name"] ?? "No name",
-          latitude: jsonResponse["geocodes"]["main"]["latitude"] ?? 0,
-          longitude: jsonResponse["geocodes"]["main"]["longitude"] ?? 0,
-          address: jsonResponse["location"]["address"] ?? "No address",
-          locality: jsonResponse["location"]["locality"] ?? "No locality",
-          region: jsonResponse["location"]["region"] ?? "No region",
-          country: jsonResponse["location"]["country"],
-          category: jsonResponse["categories"][0]["name"] ?? "No category",
-          categoryIconPrefix: jsonResponse["categories"][0]["icon"]["prefix"],
-          categoryIconSuffix: jsonResponse["categories"][0]["icon"]["suffix"],
-          postcode: jsonResponse["location"]["postcode"] ?? "No postcode",
-        );
+            name: jsonResponse["name"] ?? "No name",
+            latitude: jsonResponse["geocodes"]["main"]["latitude"] ?? 0,
+            longitude: jsonResponse["geocodes"]["main"]["longitude"] ?? 0,
+            address: jsonResponse["location"]["address"] ?? "No address",
+            locality: jsonResponse["location"]["locality"] ?? "No locality",
+            region: jsonResponse["location"]["region"] ?? "No region",
+            country: jsonResponse["location"]["country"],
+            category: jsonResponse["categories"][0]["name"] ?? "No category",
+            categoryIconPrefix: jsonResponse["categories"][0]["icon"]["prefix"],
+            categoryIconSuffix: jsonResponse["categories"][0]["icon"]["suffix"],
+            postcode: jsonResponse["location"]["postcode"] ?? "No postcode",
+            foursquareId: jsonResponse["fsq_id"]);
 
         placeData.value = placeSpot;
         await checkIfFavorite(placeSpot);
@@ -124,6 +124,7 @@ class PlaceController extends GetxController {
       categoryIconPrefix: place?.categoryIconPrefix ?? "",
       categoryIconSuffix: place?.categoryIconSuffix ?? "",
       country: place?.country ?? "",
+      foursquareId: place?.foursquareId ?? "",
     );
 
     try {

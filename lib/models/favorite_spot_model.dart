@@ -16,6 +16,7 @@ class FavoriteSpot {
   final String category;
   final String categoryIconPrefix;
   final String categoryIconSuffix;
+  final String foursquareId;
 
   FavoriteSpot({
     this.id = "",
@@ -31,6 +32,7 @@ class FavoriteSpot {
     required this.category,
     required this.categoryIconPrefix,
     required this.categoryIconSuffix,
+    required this.foursquareId,
   });
 
   // Convert Firestore document data to a FavoriteSpot object, including the document ID
@@ -55,6 +57,7 @@ class FavoriteSpot {
       category: map['category'] ?? "No category",
       categoryIconPrefix: map['categoryIconPrefix'] ?? "",
       categoryIconSuffix: map['categoryIconSuffix'] ?? "",
+      foursquareId: map["foursquareId"] ?? ""
     );
   }
 
@@ -73,6 +76,7 @@ class FavoriteSpot {
       'category': category,
       'categoryIconPrefix': categoryIconPrefix,
       'categoryIconSuffix': categoryIconSuffix,
+      'foursquareId': foursquareId,
     };
   }
 }
