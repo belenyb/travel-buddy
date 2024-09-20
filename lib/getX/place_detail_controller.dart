@@ -1,5 +1,9 @@
+import 'dart:async';
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -8,10 +12,16 @@ import '../app_state.dart';
 import '../models/favorite_spot_model.dart';
 
 class PlaceController extends GetxController {
+  final User? user = AppState.currentUser;
+
   final Rx<FavoriteSpot?> placeData = Rx<FavoriteSpot?>(null);
   var isLoading = true.obs;
   var errorMessage = ''.obs;
-  final RxBool isFavorite = RxBool(false);
+  final Rx<String> favoriteId = ''.obs;
+
+  final StreamController<bool> _isFavoriteStreamController =
+      StreamController<bool>.broadcast();
+  Stream<bool> get isFavoriteStream => _isFavoriteStreamController.stream;
 
   final String apiKey = dotenv.env['FOURSQUARE_API_KEY']!;
 
@@ -57,14 +67,11 @@ class PlaceController extends GetxController {
   }
 
   Future<void> checkIfFavorite(FavoriteSpot? place) async {
-    final User? user = AppState.currentUser;
-
     if (user != null && place != null) {
       final FirebaseFirestore firestore = FirebaseFirestore.instance;
       final CollectionReference favoritesCollection =
-          firestore.collection('users').doc(user.uid).collection('favorites');
+          firestore.collection('users').doc(user!.uid).collection('favorites');
 
-      // Use a more specific query to compare place details
       final querySnapshot = await favoritesCollection
           .where('name', isEqualTo: place.name)
           .where('latitude', isEqualTo: place.latitude)
@@ -77,9 +84,64 @@ class PlaceController extends GetxController {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        final String favoriteId = querySnapshot.docs[0].id;
-        isFavorite.value = favoriteId != "";
+        favoriteId.value = querySnapshot.docs[0].id;
+        _isFavoriteStreamController.add(true);
+      } else {
+        _isFavoriteStreamController.add(false);
       }
+    }
+  }
+
+  Future<void> removeFromFavorites() async {
+    if (user != null && favoriteId.value.isNotEmpty) {
+      final FirebaseFirestore firestore = FirebaseFirestore.instance;
+      final CollectionReference favoritesCollection =
+          firestore.collection('users').doc(user!.uid).collection('favorites');
+
+      try {
+        await favoritesCollection.doc(favoriteId.value).delete();
+        _isFavoriteStreamController.add(false);
+        log("Favorite deleted successfully!");
+      } catch (error) {
+        debugPrint(error.toString());
+      }
+    } else {
+      log("User not logged in or favorite ID unavailable.");
+    }
+  }
+
+  Future<void> addToFavorites(FavoriteSpot? place) async {
+    final FavoriteSpot favoriteSpot = FavoriteSpot(
+      name: place?.name ?? "",
+      addedAt: DateTime.now(),
+      latitude: place?.latitude ?? 0.0,
+      longitude: place?.longitude ?? 0.0,
+      address: place?.address ?? "",
+      locality: place?.locality,
+      region: place?.region ?? "",
+      postcode: place?.postcode,
+      category: place?.category ?? "",
+      categoryIconPrefix: place?.categoryIconPrefix ?? "",
+      categoryIconSuffix: place?.categoryIconSuffix ?? "",
+      country: place?.country ?? "",
+    );
+
+    try {
+      if (user != null) {
+        String userId = user!.uid;
+        CollectionReference favoritesCollection = FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('favorites');
+
+        await favoritesCollection.add(favoriteSpot.toMap());
+        _isFavoriteStreamController.add(true);
+        log('Favorite spot added successfully!');
+      } else {
+        log('User not logged in');
+      }
+    } catch (error) {
+      log('Error adding favorite: $error');
     }
   }
 }

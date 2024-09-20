@@ -1,11 +1,5 @@
-import 'dart:developer';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart' as material_icons;
 import 'package:get/get.dart';
-import '../app_state.dart';
 import '../getX/place_detail_controller.dart';
 import '../models/favorite_spot_model.dart';
 
@@ -24,30 +18,6 @@ class SheetContent extends StatefulWidget {
 }
 
 class _SheetContentState extends State<SheetContent> {
-  String? favoriteId;
-
-  Future<void> removeFromFavorites() async {
-    final User? user = AppState.currentUser;
-
-    if (user != null && favoriteId != null) {
-      final FirebaseFirestore firestore = FirebaseFirestore.instance;
-      final CollectionReference favoritesCollection =
-          firestore.collection('users').doc(user.uid).collection('favorites');
-
-      try {
-        await favoritesCollection.doc(favoriteId).delete();
-        setState(() {
-          favoriteId = null;
-        });
-        log("Favorite deleted successfully!");
-      } catch (error) {
-        debugPrint(error.toString());
-      }
-    } else {
-      log("User not logged in or favorite ID unavailable.");
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final PlaceController placeController = Get.put(PlaceController());
@@ -147,66 +117,51 @@ class _SheetContentState extends State<SheetContent> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        isLoading
-                            ? const Skeleton(width: 140, height: 25)
-                            : TextButton.icon(
-                                label: Text(placeController.isFavorite.value
-                                    ? "Remove from favorites"
-                                    : "Add to favorites"),
-                                icon: material_icons.Icon(
-                                  placeController.isFavorite.value
-                                      ? Icons.star
-                                      : Icons.star_border_outlined,
-                                  size: 18,
-                                ),
-                                onPressed: () async {
-                                  User? user = AppState.currentUser;
-                                  if (placeController.isFavorite.value) {
-                                    await removeFromFavorites();
-                                  } else {
-                                    final FavoriteSpot favoriteSpot =
-                                        FavoriteSpot(
-                                      name: widget.place?.name ?? "",
-                                      addedAt: DateTime.now(),
-                                      latitude: widget.place?.latitude ?? 0.0,
-                                      longitude: widget.place?.longitude ?? 0.0,
-                                      address: widget.place?.address ?? "",
-                                      locality: widget.place?.locality,
-                                      region: widget.place?.region ?? "",
-                                      postcode: widget.place?.postcode,
-                                      category: widget.place?.category ?? "",
-                                      categoryIconPrefix:
-                                          widget.place?.categoryIconPrefix ??
-                                              "",
-                                      categoryIconSuffix:
-                                          widget.place?.categoryIconSuffix ??
-                                              "",
-                                      country: widget.place?.country ?? "",
-                                    );
+                        StreamBuilder<bool>(
+                          stream: placeController.isFavoriteStream,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Skeleton(width: 140, height: 25);
+                            }
 
-                                    try {
-                                      if (user != null) {
-                                        String userId = user.uid;
-                                        CollectionReference
-                                            favoritesCollection =
-                                            FirebaseFirestore.instance
-                                                .collection('users')
-                                                .doc(userId)
-                                                .collection('favorites');
-
-                                        await favoritesCollection
-                                            .add(favoriteSpot.toMap());
-
-                                        log('Favorite spot added successfully!');
-                                      } else {
-                                        log('User not logged in');
-                                      }
-                                    } catch (error) {
-                                      log('Error adding favorite: $error');
-                                    }
-                                  }
+                            if (snapshot.hasData && snapshot.data == true) {
+                              return GestureDetector(
+                                onTap: () async {
+                                  await placeController.removeFromFavorites();
                                 },
-                              ),
+                                child: const Row(
+                                  children: [
+                                    Icon(
+                                      Icons.star,
+                                      color: Color.fromARGB(255, 254, 230, 12),
+                                      size: 28,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text("Remove from favorites"),
+                                  ],
+                                ),
+                              );
+                            } else {
+                              return GestureDetector(
+                                onTap: () async {
+                                  await placeController
+                                      .addToFavorites(widget.place);
+                                },
+                                child: const Row(
+                                  children: [
+                                    Icon(
+                                      Icons.star_outline,
+                                      size: 28,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text("Add to favorites"),
+                                  ],
+                                ),
+                              );
+                            }
+                          },
+                        ),
                       ],
                     ),
                     if (isLoading) const SizedBox(height: 16),
