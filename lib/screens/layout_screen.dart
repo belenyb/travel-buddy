@@ -79,7 +79,7 @@ class _LayoutScreenState extends State<LayoutScreen> {
                 icon: const Icon(Icons.logout_outlined),
                 onPressed: () async {
                   await userRepository.signOut();
-                  Get.toNamed("/auth");
+                  Get.offAllNamed("/auth");
                 },
               ),
             ],

@@ -1,11 +1,16 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:travel_buddy/screens/layout_screen.dart';
+
 import '../blocs/auth_bloc/auth_bloc.dart';
 
 class AuthFormScreen extends StatelessWidget {
   static const routeName = '/auth_form_screen';
-  const AuthFormScreen({Key? key}) : super(key: key);
+  const AuthFormScreen({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -25,32 +30,35 @@ class _AuthFormState extends State<AuthForm> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscureText = true;
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: DefaultTabController(
-        length: 2,
-        child: Scaffold(
-          appBar: AppBar(
-            automaticallyImplyLeading: false,
-            title: const Text('Welcome! 👋'),
-            bottom: const TabBar(
-              tabs: [
-                Tab(text: 'Log in'),
-                Tab(text: 'Sign up'),
-              ],
+    return isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : Scaffold(
+            body: DefaultTabController(
+              length: 2,
+              child: Scaffold(
+                appBar: AppBar(
+                  automaticallyImplyLeading: false,
+                  title: const Text('Welcome! 👋'),
+                  bottom: const TabBar(
+                    tabs: [
+                      Tab(text: 'Log in'),
+                      Tab(text: 'Sign up'),
+                    ],
+                  ),
+                ),
+                body: TabBarView(
+                  children: [
+                    getAuthForm(context, "login"),
+                    getAuthForm(context, "signup"),
+                  ],
+                ),
+              ),
             ),
-          ),
-          body: TabBarView(
-            children: [
-              getAuthForm(context, "login"),
-              getAuthForm(context, "signup"),
-            ],
-          ),
-        ),
-      ),
-    );
+          );
   }
 
   Padding getAuthForm(BuildContext context, String authType) {
@@ -66,7 +74,7 @@ class _AuthFormState extends State<AuthForm> {
               listener: (BuildContext context, state) {
                 switch (state.status) {
                   case FormStatus.pending:
-                    const CircularProgressIndicator();
+                    isLoading = true;
                     break;
 
                   case FormStatus.error:
@@ -74,6 +82,9 @@ class _AuthFormState extends State<AuthForm> {
                     break;
 
                   case FormStatus.success:
+                    setState(() {
+                      isLoading = false;
+                    });
                     Navigator.pushNamed(context, LayoutScreen.routeName);
                     break;
                   default:
@@ -102,8 +113,9 @@ class _AuthFormState extends State<AuthForm> {
                       height: 16,
                     ),
                     TextFormField(
-                      onChanged: (value) =>
-                          {context.read<AuthBloc>().add(PasswordChanged(value))},
+                      onChanged: (value) => {
+                        context.read<AuthBloc>().add(PasswordChanged(value))
+                      },
                       obscureText: _obscureText,
                       controller: _passwordController,
                       decoration: InputDecoration(
@@ -111,7 +123,9 @@ class _AuthFormState extends State<AuthForm> {
                         hintText: 'Enter your password',
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscureText ? Icons.visibility_off : Icons.visibility,
+                            _obscureText
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                           ),
                           onPressed: () {
                             setState(() {
@@ -129,7 +143,8 @@ class _AuthFormState extends State<AuthForm> {
                     ),
                     const SizedBox(height: 16.0),
                     if (context.read<AuthBloc>().state.errorMsg != null &&
-                        context.read<AuthBloc>().state.status == FormStatus.error)
+                        context.read<AuthBloc>().state.status ==
+                            FormStatus.error)
                       Text(context.read<AuthBloc>().state.errorMsg ?? ''),
                     ElevatedButton(
                       onPressed: () {
