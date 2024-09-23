@@ -60,11 +60,17 @@ class _LayoutScreenState extends State<LayoutScreen> {
           ),
         ),
         appBar: AppBar(
-          leading: Icon(
-            Icons.travel_explore,
-            color: Theme.of(context).primaryColor,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: Image.asset("assets/images/travel-buddy-logo.png",
+                fit: BoxFit.contain),
           ),
-          title: Text(currentUser!.email!),
+          leadingWidth: 100,
+          title: Text(
+            currentUser!.email!,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          centerTitle: true,
           actions: [
             IconButton(
               icon: const Icon(Icons.logout_outlined),
