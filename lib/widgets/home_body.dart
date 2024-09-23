@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../blocs/foursquare_bloc/foursquare_bloc.dart';
 import 'google_map_widget.dart';
 
 class HomeBody extends StatelessWidget {
@@ -11,7 +8,6 @@ class HomeBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-        create: (_) => FoursquareBloc(), child: const GoogleMapWidget());
+    return const GoogleMapWidget();
   }
 }

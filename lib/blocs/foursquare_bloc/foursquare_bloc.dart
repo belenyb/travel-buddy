@@ -10,44 +10,67 @@ import 'foursquare_bloc_state.dart';
 class FoursquareBloc extends Bloc<FoursquareBlocEvent, FoursquareBlocState> {
   FoursquareBloc() : super(FoursquareBlocInitialState()) {
     on<SearchPlacesEvent>(_onSearchPlacesEvent);
+    on<AddFavoriteMarkerEvent>(_onAddFavoriteMarkerEvent);
   }
-}
 
-Future<void> _onSearchPlacesEvent(
-    SearchPlacesEvent event, Emitter<FoursquareBlocState> emit) async {
-  emit(FoursquareBlocLoadingState());
+  Future<void> _onSearchPlacesEvent(
+      SearchPlacesEvent event, Emitter<FoursquareBlocState> emit) async {
+    emit(FoursquareBlocLoadingState());
 
-  try {
-    final String? apiKey = dotenv.env['FOURSQUARE_API_KEY'];
-    final response = await http.get(
-      Uri.parse(
-        'https://api.foursquare.com/v3/places/search?ll=${event.center.latitude},${event.center.longitude}&categories=${event.category}&radius=6000',
-      ),
-      headers: {
-        'Authorization': apiKey!,
-      },
-    );
+    try {
+      final String? apiKey = dotenv.env['FOURSQUARE_API_KEY'];
+      final response = await http.get(
+        Uri.parse(
+          'https://api.foursquare.com/v3/places/search?ll=${event.center.latitude},${event.center.longitude}&categories=${event.category}&radius=6000',
+        ),
+        headers: {
+          'Authorization': apiKey!,
+        },
+      );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final Set<Marker> markers = {};
-      for (var item in data['results']) {
-        final Marker marker = Marker(
-          markerId: MarkerId(item['fsq_id']),
-          position: LatLng(
-            item['geocodes']['main']['latitude'],
-            item['geocodes']['main']['longitude'],
-          ),
-          infoWindow: InfoWindow(
-              title: item['name'], snippet: item['location']['address']),
-        );
-        markers.add(marker);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final Set<Marker> markers = {};
+        for (var item in data['results']) {
+          final Marker marker = Marker(
+            markerId: MarkerId(item['fsq_id']),
+            position: LatLng(
+              item['geocodes']['main']['latitude'],
+              item['geocodes']['main']['longitude'],
+            ),
+            infoWindow: InfoWindow(
+                title: item['name'], snippet: item['location']['address']),
+          );
+          markers.add(marker);
+        }
+        emit(FoursquareBlocLoadedState(markers));
+      } else {
+        emit(const FoursquareBlocErrorState('Failed to load places'));
       }
-      emit(FoursquareBlocLoadedState(markers));
-    } else {
-      emit(const FoursquareBlocErrorState('Failed to load places'));
+    } catch (e) {
+      emit(FoursquareBlocErrorState(e.toString()));
     }
-  } catch (e) {
-    emit(FoursquareBlocErrorState(e.toString()));
+  }
+
+  Future<void> _onAddFavoriteMarkerEvent(
+      AddFavoriteMarkerEvent event, Emitter<FoursquareBlocState> emit) async {
+    emit(FoursquareBlocLoadingState());
+
+    try {
+      // Create the new marker
+      final Marker newMarker = Marker(
+        markerId: MarkerId(event.markerId),
+        position: event.position,
+        infoWindow: InfoWindow(title: event.title),
+      );
+
+      // Add the new marker to the set
+      final Set<Marker> markers = {newMarker};
+
+      // Emit the updated state with the new marker
+      emit(FoursquareBlocLoadedState(markers));
+    } catch (e) {
+      emit(FoursquareBlocErrorState(e.toString()));
+    }
   }
 }

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../blocs/foursquare_bloc/foursquare_bloc.dart';
+import '../blocs/foursquare_bloc/foursquare_bloc_event.dart';
 import '../models/favorite_spot_model.dart';
 import '../singleton/favorites_service.dart';
 
@@ -41,12 +45,24 @@ class _FavoritesBodyState extends State<FavoritesBody> {
           itemBuilder: (context, index) {
             final favorite = favorites[index];
             return ListTile(
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(favorite.name),
-                  Text(favorite.address),
-                ],
+              title: GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                  BlocProvider.of<FoursquareBloc>(context).add(
+                    AddFavoriteMarkerEvent(
+                      favorite.foursquareId,
+                      LatLng(favorite.latitude, favorite.longitude),
+                      favorite.name,
+                    ),
+                  );
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(favorite.name),
+                    Text(favorite.address),
+                  ],
+                ),
               ),
               subtitle: Text(favorite.category),
               trailing: IconButton(

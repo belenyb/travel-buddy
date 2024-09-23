@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:travel_buddy/app_state.dart';
 import 'package:travel_buddy/auth/firebase_user_repository.dart';
 import 'package:travel_buddy/screens/layout_screen.dart';
@@ -57,7 +58,7 @@ class _AppState extends State<App> {
       return const CircularProgressIndicator();
     }
 
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       routes: {
         '/main': (context) => const LayoutScreen(),

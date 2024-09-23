@@ -33,6 +33,7 @@ class _AuthFormState extends State<AuthForm> {
         length: 2,
         child: Scaffold(
           appBar: AppBar(
+            automaticallyImplyLeading: false,
             title: const Text('Welcome! 👋'),
             bottom: const TabBar(
               tabs: [
@@ -56,100 +57,106 @@ class _AuthFormState extends State<AuthForm> {
     final formKey = GlobalKey<FormState>();
     return Padding(
       padding: const EdgeInsets.all(32.0),
-      child: SafeArea(
-        child: BlocListener<AuthBloc, AuthState>(
-          listener: (BuildContext context, state) {
-            switch (state.status) {
-              case FormStatus.pending:
-                const CircularProgressIndicator();
-                break;
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.asset("assets/images/travel-buddy-logo.png"),
+          SafeArea(
+            child: BlocListener<AuthBloc, AuthState>(
+              listener: (BuildContext context, state) {
+                switch (state.status) {
+                  case FormStatus.pending:
+                    const CircularProgressIndicator();
+                    break;
 
-              case FormStatus.error:
-                setState(() {});
-                break;
+                  case FormStatus.error:
+                    setState(() {});
+                    break;
 
-              case FormStatus.success:
-                Navigator.pushNamed(context, LayoutScreen.routeName);
-                break;
-              default:
-            }
-          },
-          child: Form(
-            key: formKey,
-            child: Column(
-              children: [
-                TextFormField(
-                  onChanged: (value) =>
-                      {context.read<AuthBloc>().add(EmailChanged(value))},
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    hintText: 'Enter your email',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                TextFormField(
-                  onChanged: (value) =>
-                      {context.read<AuthBloc>().add(PasswordChanged(value))},
-                  obscureText: _obscureText,
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    hintText: 'Enter your password',
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureText ? Icons.visibility_off : Icons.visibility,
+                  case FormStatus.success:
+                    Navigator.pushNamed(context, LayoutScreen.routeName);
+                    break;
+                  default:
+                }
+              },
+              child: Form(
+                key: formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      onChanged: (value) =>
+                          {context.read<AuthBloc>().add(EmailChanged(value))},
+                      controller: _emailController,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        hintText: 'Enter your email',
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureText = !_obscureText;
-                        });
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your email';
+                        }
+                        return null;
                       },
                     ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16.0),
-                if (context.read<AuthBloc>().state.errorMsg != null &&
-                    context.read<AuthBloc>().state.status == FormStatus.error)
-                  Text(context.read<AuthBloc>().state.errorMsg ?? ''),
-                ElevatedButton(
-                  onPressed: () {
-                    if (formKey.currentState!.validate()) {
-                      if (authType == "login") {
-                        context.read<AuthBloc>().add(SignIn());
-                      } else {
-                        context.read<AuthBloc>().add(SignUp());
-                        if (context.read<AuthBloc>().state.status ==
-                            FormStatus.success) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Successfully registered'),
-                            ),
-                          );
+                    const SizedBox(
+                      height: 16,
+                    ),
+                    TextFormField(
+                      onChanged: (value) =>
+                          {context.read<AuthBloc>().add(PasswordChanged(value))},
+                      obscureText: _obscureText,
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        hintText: 'Enter your password',
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureText ? Icons.visibility_off : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureText = !_obscureText;
+                            });
+                          },
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your password';
                         }
-                      }
-                    }
-                  },
-                  child: Text(authType == "login" ? 'Log in' : 'Sign up'),
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16.0),
+                    if (context.read<AuthBloc>().state.errorMsg != null &&
+                        context.read<AuthBloc>().state.status == FormStatus.error)
+                      Text(context.read<AuthBloc>().state.errorMsg ?? ''),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (formKey.currentState!.validate()) {
+                          if (authType == "login") {
+                            context.read<AuthBloc>().add(SignIn());
+                          } else {
+                            context.read<AuthBloc>().add(SignUp());
+                            if (context.read<AuthBloc>().state.status ==
+                                FormStatus.success) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Successfully registered'),
+                                ),
+                              );
+                            }
+                          }
+                        }
+                      },
+                      child: Text(authType == "login" ? 'Log in' : 'Sign up'),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

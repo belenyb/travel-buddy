@@ -10,3 +10,11 @@ class SearchPlacesEvent extends FoursquareBlocEvent {
 
   const SearchPlacesEvent(this.category, this.center);
 }
+
+class AddFavoriteMarkerEvent extends FoursquareBlocEvent {
+  final String markerId;
+  final LatLng position;
+  final String title;
+
+  AddFavoriteMarkerEvent(this.markerId, this.position, this.title);
+}

@@ -68,6 +68,11 @@ class _MyAppState extends State<GoogleMapWidget> {
           ),
         );
       }
+      final Marker firstMarker = _markers.first;
+      //This is not working, why?
+      mapController.animateCamera(
+        CameraUpdate.newLatLng(firstMarker.position),
+      );
       _isLoading = false;
       setState(() {});
       return;
@@ -107,6 +112,7 @@ class _MyAppState extends State<GoogleMapWidget> {
     return BlocListener<FoursquareBloc, FoursquareBlocState>(
       listener: (context, state) {
         if (state is FoursquareBlocLoadedState) {
+          _markers = {};
           setState(() {
             _markers = state.markers.map((marker) {
               return Marker(
