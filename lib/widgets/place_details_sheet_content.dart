@@ -49,70 +49,56 @@ class _SheetContentState extends State<SheetContent> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                    isLoading
+                        ? const Skeleton(width: 150, height: 45)
+                        : Chip(
+                          padding: EdgeInsets.zero,
+                          label: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              isLoading
-                                  ? const Skeleton(width: 150, height: 30)
-                                  : Text(
-                                      widget.place?.name ?? "No name",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleLarge,
-                                    ),
-                              if (isLoading) const SizedBox(height: 8),
-                              isLoading
-                                  ? const Skeleton(width: 200, height: 40)
-                                  : Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          widget.place?.address ?? "No address",
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge,
-                                        ),
-                                        Text(
-                                            "${widget.place?.locality ?? 'No locality'}, ${widget.place?.country ?? 'No country'}.")
-                                      ],
-                                    ),
+                              Image.network(
+                                "${widget.place?.categoryIconPrefix ?? ''}32${widget.place?.categoryIconSuffix ?? ''}",
+                                color: Theme.of(context).primaryColor,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Text("😢");
+                                },
+                              ),
+                              Text(
+                                widget.place?.category ?? "No category",
+                                maxLines: 2,
+                                softWrap: true,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .chipTheme
+                                    .secondaryLabelStyle
+                                    ?.copyWith(
+                                        color:
+                                            Theme.of(context).primaryColor),
+                              ),
                             ],
                           ),
                         ),
-                        isLoading
-                            ? const Skeleton(width: 150, height: 55)
-                            : Chip(
-                                label: Row(
-                                  children: [
-                                    Image.network(
-                                      "${widget.place?.categoryIconPrefix ?? ''}32${widget.place?.categoryIconSuffix ?? ''}",
-                                      color: Theme.of(context).primaryColor,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return const Text("😢");
-                                      },
-                                    ),
-                                    Text(
-                                      widget.place?.category ?? "No category",
-                                      style: Theme.of(context)
-                                          .chipTheme
-                                          .secondaryLabelStyle
-                                          ?.copyWith(
-                                              color: Theme.of(context)
-                                                  .primaryColor),
-                                    ),
-                                  ],
-                                ),
+                    isLoading
+                        ? const Skeleton(width: 150, height: 30)
+                        : Text(
+                            widget.place?.name ?? "No name",
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                    if (isLoading) const SizedBox(height: 8),
+                    isLoading
+                        ? const Skeleton(width: 200, height: 40)
+                        : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.place?.address ?? "No address",
+                                style: Theme.of(context).textTheme.bodyLarge,
                               ),
-                      ],
-                    ),
+                              Text(
+                                  "${widget.place?.locality ?? 'No locality'}, ${widget.place?.country ?? 'No country'}.")
+                            ],
+                          ),
                     const SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,

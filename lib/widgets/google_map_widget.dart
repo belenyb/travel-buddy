@@ -69,7 +69,7 @@ class _MyAppState extends State<GoogleMapWidget> {
         );
       }
       final Marker firstMarker = _markers.first;
-      //This is not working, why?
+      //This is not working when tap on favorite, why?
       mapController.animateCamera(
         CameraUpdate.newLatLng(firstMarker.position),
       );
@@ -151,11 +151,11 @@ class _MyAppState extends State<GoogleMapWidget> {
               myLocationEnabled: true,
               myLocationButtonEnabled: true,
               markers: _markers,
-              onCameraIdle: _onCameraIdle,
+              // onCameraIdle: _onCameraIdle,
               mapType: _mapType,
             ),
             Container(
-              margin: const EdgeInsets.symmetric(vertical: 8.0),
+              margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
               height: 45.0,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
@@ -230,7 +230,7 @@ class _MyAppState extends State<GoogleMapWidget> {
   Widget _categoryButton(String category, String label) {
     final isActive = _currentCategory == category;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8.0),
+      margin: const EdgeInsets.symmetric(horizontal: 2.0),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           foregroundColor:
