@@ -21,9 +21,14 @@ class PlaceController extends GetxController {
 
   final StreamController<bool> _isFavoriteStreamController =
       StreamController<bool>.broadcast();
-  Stream<bool> get isFavoriteStream => _isFavoriteStreamController.stream;
 
   final String apiKey = dotenv.env['FOURSQUARE_API_KEY']!;
+
+  PlaceController() {
+    _isFavoriteStreamController.add(false);
+  }
+
+  Stream<bool> get isFavoriteStream => _isFavoriteStreamController.stream;
 
   Future<void> fetchPlaceDetails(String id) async {
     errorMessage.value = '';
@@ -55,7 +60,9 @@ class PlaceController extends GetxController {
             foursquareId: jsonResponse["fsq_id"]);
 
         placeData.value = placeSpot;
-        await checkIfFavorite(placeSpot);
+        checkIfFavorite(placeSpot).then((isFavorite) {
+          _isFavoriteStreamController.add(isFavorite);
+        });
       } else {
         errorMessage.value = 'Failed to load place details';
       }
@@ -66,29 +73,38 @@ class PlaceController extends GetxController {
     }
   }
 
-  Future<void> checkIfFavorite(FavoriteSpot? place) async {
+  Future<bool> checkIfFavorite(FavoriteSpot? place) async {
     if (user != null && place != null) {
-      final FirebaseFirestore firestore = FirebaseFirestore.instance;
-      final CollectionReference favoritesCollection =
-          firestore.collection('users').doc(user!.uid).collection('favorites');
+      try {
+        final FirebaseFirestore firestore = FirebaseFirestore.instance;
+        final CollectionReference favoritesCollection = firestore
+            .collection('users')
+            .doc(user!.uid)
+            .collection('favorites');
 
-      final querySnapshot = await favoritesCollection
-          .where('name', isEqualTo: place.name)
-          .where('latitude', isEqualTo: place.latitude)
-          .where('longitude', isEqualTo: place.longitude)
-          .where('address', isEqualTo: place.address)
-          .where('locality', isEqualTo: place.locality)
-          .where('region', isEqualTo: place.region)
-          .where('postcode', isEqualTo: place.postcode)
-          .where('category', isEqualTo: place.category)
-          .get();
+        final querySnapshot = await favoritesCollection
+            .where('name', isEqualTo: place.name)
+            .where('latitude', isEqualTo: place.latitude)
+            .where('longitude', isEqualTo: place.longitude)
+            .where('address', isEqualTo: place.address)
+            .where('locality', isEqualTo: place.locality)
+            .where('region', isEqualTo: place.region)
+            .where('postcode', isEqualTo: place.postcode)
+            .where('category', isEqualTo: place.category)
+            .get();
 
-      if (querySnapshot.docs.isNotEmpty) {
-        favoriteId.value = querySnapshot.docs[0].id;
-        _isFavoriteStreamController.add(true);
-      } else {
-        _isFavoriteStreamController.add(false);
+        if (querySnapshot.docs.isNotEmpty) {
+          favoriteId.value = querySnapshot.docs[0].id;
+          return true;
+        } else {
+          return false;
+        }
+      } catch (e) {
+        debugPrint(e.toString());
+        return false;
       }
+    } else {
+      return false;
     }
   }
 

@@ -18,10 +18,16 @@ class SheetContent extends StatefulWidget {
 }
 
 class _SheetContentState extends State<SheetContent> {
+  late final PlaceController placeController;
+
+  @override
+  void initState() {
+    placeController = Get.find<PlaceController>();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final PlaceController placeController = Get.put(PlaceController());
-
     return SafeArea(
       child: Wrap(
         children: [
@@ -52,32 +58,32 @@ class _SheetContentState extends State<SheetContent> {
                     isLoading
                         ? const Skeleton(width: 150, height: 45)
                         : Chip(
-                          padding: EdgeInsets.zero,
-                          label: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Image.network(
-                                "${widget.place?.categoryIconPrefix ?? ''}32${widget.place?.categoryIconSuffix ?? ''}",
-                                color: Theme.of(context).primaryColor,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Text("😢");
-                                },
-                              ),
-                              Text(
-                                widget.place?.category ?? "No category",
-                                maxLines: 2,
-                                softWrap: true,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .chipTheme
-                                    .secondaryLabelStyle
-                                    ?.copyWith(
-                                        color:
-                                            Theme.of(context).primaryColor),
-                              ),
-                            ],
+                            padding: EdgeInsets.zero,
+                            label: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Image.network(
+                                  "${widget.place?.categoryIconPrefix ?? ''}32${widget.place?.categoryIconSuffix ?? ''}",
+                                  color: Theme.of(context).primaryColor,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Text("😢");
+                                  },
+                                ),
+                                Text(
+                                  widget.place?.category ?? "No category",
+                                  maxLines: 2,
+                                  softWrap: true,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context)
+                                      .chipTheme
+                                      .secondaryLabelStyle
+                                      ?.copyWith(
+                                          color:
+                                              Theme.of(context).primaryColor),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
                     isLoading
                         ? const Skeleton(width: 150, height: 30)
                         : Text(
@@ -100,56 +106,61 @@ class _SheetContentState extends State<SheetContent> {
                             ],
                           ),
                     const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        StreamBuilder<bool>(
-                          stream: placeController.isFavoriteStream,
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Skeleton(width: 140, height: 25);
-                            }
+                    isLoading
+                        ? const Center(child: Skeleton(width: 140, height: 25))
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              StreamBuilder<bool>(
+                                stream: placeController.isFavoriteStream,
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const Skeleton(width: 140, height: 25);
+                                  }
 
-                            if (snapshot.hasData && snapshot.data == true) {
-                              return GestureDetector(
-                                onTap: () async {
-                                  await placeController.removeFromFavorites();
+                                  if (snapshot.hasData &&
+                                      snapshot.data == true) {
+                                    return GestureDetector(
+                                      onTap: () async {
+                                        await placeController
+                                            .removeFromFavorites();
+                                      },
+                                      child: const Row(
+                                        children: [
+                                          Icon(
+                                            Icons.star,
+                                            color: Color.fromARGB(
+                                                255, 254, 230, 12),
+                                            size: 28,
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text("Remove from favorites"),
+                                        ],
+                                      ),
+                                    );
+                                  } else {
+                                    return GestureDetector(
+                                      onTap: () async {
+                                        await placeController
+                                            .addToFavorites(widget.place);
+                                      },
+                                      child: const Row(
+                                        children: [
+                                          Icon(
+                                            Icons.star_outline,
+                                            size: 28,
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text("Add to favorites"),
+                                        ],
+                                      ),
+                                    );
+                                  }
                                 },
-                                child: const Row(
-                                  children: [
-                                    Icon(
-                                      Icons.star,
-                                      color: Color.fromARGB(255, 254, 230, 12),
-                                      size: 28,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text("Remove from favorites"),
-                                  ],
-                                ),
-                              );
-                            } else {
-                              return GestureDetector(
-                                onTap: () async {
-                                  await placeController
-                                      .addToFavorites(widget.place);
-                                },
-                                child: const Row(
-                                  children: [
-                                    Icon(
-                                      Icons.star_outline,
-                                      size: 28,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text("Add to favorites"),
-                                  ],
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                      ],
-                    ),
+                              ),
+                            ],
+                          ),
                     if (isLoading) const SizedBox(height: 16),
                     if (placeController.errorMessage.value.isNotEmpty)
                       Padding(

@@ -151,7 +151,7 @@ class _MyAppState extends State<GoogleMapWidget> {
               myLocationEnabled: true,
               myLocationButtonEnabled: true,
               markers: _markers,
-              // onCameraIdle: _onCameraIdle,
+              onCameraIdle: _onCameraIdle,
               mapType: _mapType,
             ),
             Container(
