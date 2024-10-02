@@ -67,7 +67,7 @@ flutter:
     - assets/images/travel-buddy-logo.png
     - assets/images/custom-marker-favorite.png
     - assets/images/custom-marker-red.png
-    - .env 
+    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

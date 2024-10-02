@@ -11,6 +11,7 @@ import 'firebase_options.dart';
 import 'screens/auth_form_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'screens/loading_screen.dart';
 import 'theme/theme_data.dart';
 
 void main() async {
@@ -41,6 +42,8 @@ class _AppState extends State<App> {
   }
 
   Future<void> _checkAuthentication() async {
+    await Future.delayed(const Duration(milliseconds: 2500));
+
     final FirebaseUserRepository userRepository = FirebaseUserRepository();
     final user = await userRepository.getCurrentUser();
     if (user != null) {
@@ -55,10 +58,6 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const CircularProgressIndicator();
-    }
-
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       routes: {
@@ -67,7 +66,11 @@ class _AppState extends State<App> {
       },
       title: 'Flutter Demo',
       theme: getThemeData(context),
-      home: _isAuthenticated ? const LayoutScreen() : const AuthFormScreen(),
+      home: _isLoading
+          ? const LoadingScreen()
+          : _isAuthenticated
+              ? const LayoutScreen()
+              : const AuthFormScreen(),
     );
   }
 }
