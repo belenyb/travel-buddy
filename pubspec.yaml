@@ -65,8 +65,9 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/travel-buddy-logo.png
-  #   - images/a_dot_ham.jpeg
-    - .env
+    - assets/images/custom-marker-favorite.png
+    - assets/images/custom-marker-red.png
+    - .env 
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

@@ -8,6 +8,7 @@ import '../blocs/foursquare_bloc/foursquare_bloc_event.dart';
 import '../blocs/foursquare_bloc/foursquare_bloc_state.dart';
 import '../models/foursquare_categories.dart';
 import '../singleton/favorites_service.dart';
+import '../theme/create_custom_marker.dart';
 import 'place_details_sheet.dart';
 
 class GoogleMapWidget extends StatefulWidget {
@@ -50,8 +51,10 @@ class _MyAppState extends State<GoogleMapWidget> {
 
   void _onSearchCategory(String category) async {
     _currentCategory = category;
+
     if (category == "1") {
       // Favorites
+      final BitmapDescriptor customMarker = await createCustomMarker("favorite");
       final favorites = await favoritesService.fetchFavoritesList();
       _markers = {};
       for (var favorite in favorites) {
@@ -59,8 +62,7 @@ class _MyAppState extends State<GoogleMapWidget> {
           Marker(
             markerId: MarkerId(favorite.id!),
             position: LatLng(favorite.latitude, favorite.longitude),
-            icon:
-                BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+            icon: customMarker,
             consumeTapEvents: true,
             onTap: () {
               _onMarkerTapped(favorite.foursquareId);
@@ -76,6 +78,7 @@ class _MyAppState extends State<GoogleMapWidget> {
       setState(() {});
       return;
     } else {
+      // ignore: use_build_context_synchronously
       final placesBloc = BlocProvider.of<FoursquareBloc>(context);
       placesBloc.add(SearchPlacesEvent(category, _center));
     }
@@ -93,7 +96,7 @@ class _MyAppState extends State<GoogleMapWidget> {
       _center = centerLatLng;
     });
 
-    if (_currentCategory != "" && _currentCategory != "1"){
+    if (_currentCategory != "" && _currentCategory != "1") {
       _onSearchCategory(_currentCategory);
     }
   }
@@ -141,6 +144,7 @@ class _MyAppState extends State<GoogleMapWidget> {
                 onTap: () {
                   _onMarkerTapped(marker.markerId.value);
                 },
+                icon: marker.icon,
               );
             }).toSet();
             _isLoading = false;

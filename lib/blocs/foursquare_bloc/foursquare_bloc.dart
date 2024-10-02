@@ -4,7 +4,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:travel_buddy/blocs/foursquare_bloc/foursquare_bloc_event.dart';
-
+import '../../theme/create_custom_marker.dart';
 import 'foursquare_bloc_state.dart';
 
 class FoursquareBloc extends Bloc<FoursquareBlocEvent, FoursquareBlocState> {
@@ -16,6 +16,7 @@ class FoursquareBloc extends Bloc<FoursquareBlocEvent, FoursquareBlocState> {
   Future<void> _onSearchPlacesEvent(
       SearchPlacesEvent event, Emitter<FoursquareBlocState> emit) async {
     emit(FoursquareBlocLoadingState());
+    final BitmapDescriptor markerPin = await createCustomMarker("red");
 
     try {
       final String? apiKey = dotenv.env['FOURSQUARE_API_KEY'];
@@ -39,7 +40,10 @@ class FoursquareBloc extends Bloc<FoursquareBlocEvent, FoursquareBlocState> {
               item['geocodes']['main']['longitude'],
             ),
             infoWindow: InfoWindow(
-                title: item['name'], snippet: item['location']['address']),
+              title: item['name'],
+              snippet: item['location']['address'],
+            ),
+            icon: markerPin,
           );
           markers.add(marker);
         }
@@ -56,13 +60,15 @@ class FoursquareBloc extends Bloc<FoursquareBlocEvent, FoursquareBlocState> {
       AddFavoriteMarkerEvent event, Emitter<FoursquareBlocState> emit) async {
     emit(FoursquareBlocLoadingState());
 
+    final BitmapDescriptor customMarker = await createCustomMarker("favorite");
+
     try {
       // Create the new marker
       final Marker newMarker = Marker(
         markerId: MarkerId(event.markerId),
         position: event.position,
         infoWindow: InfoWindow(title: event.title),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+        icon: customMarker,
       );
 
       // Emit the updated state with the new marker
