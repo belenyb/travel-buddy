@@ -62,6 +62,7 @@ class FoursquareBloc extends Bloc<FoursquareBlocEvent, FoursquareBlocState> {
         markerId: MarkerId(event.markerId),
         position: event.position,
         infoWindow: InfoWindow(title: event.title),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
       );
 
       // Emit the updated state with the new marker

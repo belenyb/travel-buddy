@@ -93,8 +93,9 @@ class _MyAppState extends State<GoogleMapWidget> {
       _center = centerLatLng;
     });
 
-    if (_currentCategory != "" && _currentCategory != "1")
+    if (_currentCategory != "" && _currentCategory != "1"){
       _onSearchCategory(_currentCategory);
+    }
   }
 
   void _onMarkerTapped(String foursquareId) {
@@ -116,6 +117,7 @@ class _MyAppState extends State<GoogleMapWidget> {
             markerId: state.marker.markerId,
             position: state.marker.position,
             consumeTapEvents: true,
+            icon: state.marker.icon,
             onTap: () {
               _onMarkerTapped(state.marker.markerId.value);
             },
