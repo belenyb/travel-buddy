@@ -74,12 +74,6 @@ class _SheetContentState extends State<SheetContent> {
                                   maxLines: 2,
                                   softWrap: true,
                                   overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context)
-                                      .chipTheme
-                                      .secondaryLabelStyle
-                                      ?.copyWith(
-                                          color:
-                                              Theme.of(context).primaryColor),
                                 ),
                               ],
                             ),
@@ -97,10 +91,11 @@ class _SheetContentState extends State<SheetContent> {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if(widget.place!.address != "") Text(
-                                widget.place!.address,
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
+                              if (widget.place!.address != "")
+                                Text(
+                                  widget.place!.address,
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
                               Text(
                                   "${widget.place?.locality ?? 'No locality'}, ${widget.place?.country ?? 'No country'}.")
                             ],
@@ -116,7 +111,8 @@ class _SheetContentState extends State<SheetContent> {
                                 builder: (context, snapshot) {
                                   if (snapshot.connectionState ==
                                       ConnectionState.waiting) {
-                                    return const Skeleton(width: 140, height: 25);
+                                    return const Skeleton(
+                                        width: 140, height: 25);
                                   }
 
                                   if (snapshot.hasData &&

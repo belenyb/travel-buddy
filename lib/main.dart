@@ -11,6 +11,8 @@ import 'firebase_options.dart';
 import 'screens/auth_form_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'theme/theme_data.dart';
+
 void main() async {
   await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,7 +53,6 @@ class _AppState extends State<App> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -65,9 +66,7 @@ class _AppState extends State<App> {
         '/auth': (context) => const AuthFormScreen(),
       },
       title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: getThemeData(context),
       home: _isAuthenticated ? const LayoutScreen() : const AuthFormScreen(),
     );
   }
