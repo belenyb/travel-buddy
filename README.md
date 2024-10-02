@@ -1,5 +1,3 @@
-# Travel Buddy
-
 ![App Screenshot](assets/images/travel-buddy-logo.png)
 
 **Travel Buddy** is a Flutter app that helps users explore and mark locations on a Google Map based on Foursquare categories. The app integrates Firebase Authentication for user management and Cloud Firestore for storing user-specific favorites.
@@ -15,7 +13,7 @@
   - **GetX** for accessing Foursquare place details.
   - A **singleton** pattern for managing Firebase connections and retrieving the user's favorites.
 
-![App Screenshot](assets/images/screenshots/home.png)
+<img src="assets/images/screenshots/home.png" alt="App Screenshot" height="300">
 
 ## Technologies Used
 
@@ -25,7 +23,7 @@
 - **Foursquare API**: For accessing place data.
 - **State Management**: BLoC, GetX, Singleton, Stateful widget.
 
-![App Screenshot](assets/images/screenshots/favorites.png)
+<img src="assets/images/screenshots/favorites.png" alt="App Screenshot" height="300">
 
 ## Getting Started
 
@@ -36,7 +34,7 @@
 - Firebase account
 - Foursquare API key
 
-![App Screenshot](assets/images/screenshots/sheet.png)
+<img src="assets/images/screenshots/sheet.png" alt="App Screenshot" height="300">
 
 ### Installation
 
@@ -69,7 +67,7 @@
    flutter run
    ```
 
-![App Screenshot](assets/images/screenshots/splashscreen.png)
+<img src="assets/images/screenshots/splashscreen.png" alt="App Screenshot" height="300">
 
 ## Usage
 ### Sign Up / Sign In
