@@ -69,7 +69,6 @@ class _MyAppState extends State<GoogleMapWidget> {
         );
       }
       final Marker firstMarker = _markers.first;
-      //This is not working when tap on favorite, why?
       mapController.animateCamera(
         CameraUpdate.newLatLng(firstMarker.position),
       );
@@ -94,7 +93,8 @@ class _MyAppState extends State<GoogleMapWidget> {
       _center = centerLatLng;
     });
 
-    if (_currentCategory != "") _onSearchCategory(_currentCategory);
+    if (_currentCategory != "" && _currentCategory != "1")
+      _onSearchCategory(_currentCategory);
   }
 
   void _onMarkerTapped(String foursquareId) {
@@ -111,6 +111,23 @@ class _MyAppState extends State<GoogleMapWidget> {
   Widget build(BuildContext context) {
     return BlocListener<FoursquareBloc, FoursquareBlocState>(
       listener: (context, state) {
+        if (state is FoursquareBlocFavoriteMarkedState) {
+          final Marker marker = Marker(
+            markerId: state.marker.markerId,
+            position: state.marker.position,
+            consumeTapEvents: true,
+            onTap: () {
+              _onMarkerTapped(state.marker.markerId.value);
+            },
+          );
+          _markers = {marker};
+          setState(() {
+            _isLoading = false;
+          });
+          mapController.animateCamera(
+            CameraUpdate.newLatLng(_markers.first.position),
+          );
+        }
         if (state is FoursquareBlocLoadedState) {
           _markers = {};
           setState(() {
@@ -155,7 +172,8 @@ class _MyAppState extends State<GoogleMapWidget> {
               mapType: _mapType,
             ),
             Container(
-              margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
+              margin:
+                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
               height: 45.0,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,

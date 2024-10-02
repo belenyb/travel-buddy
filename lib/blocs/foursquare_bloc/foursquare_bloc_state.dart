@@ -14,6 +14,12 @@ class FoursquareBlocLoadedState extends FoursquareBlocState {
   const FoursquareBlocLoadedState(this.markers);
 }
 
+class FoursquareBlocFavoriteMarkedState extends FoursquareBlocState {
+  final Marker marker;
+
+  const FoursquareBlocFavoriteMarkedState(this.marker);
+}
+
 class FoursquareBlocErrorState extends FoursquareBlocState {
   final String error;
 

@@ -64,11 +64,8 @@ class FoursquareBloc extends Bloc<FoursquareBlocEvent, FoursquareBlocState> {
         infoWindow: InfoWindow(title: event.title),
       );
 
-      // Add the new marker to the set
-      final Set<Marker> markers = {newMarker};
-
       // Emit the updated state with the new marker
-      emit(FoursquareBlocLoadedState(markers));
+      emit(FoursquareBlocFavoriteMarkedState(newMarker));
     } catch (e) {
       emit(FoursquareBlocErrorState(e.toString()));
     }
