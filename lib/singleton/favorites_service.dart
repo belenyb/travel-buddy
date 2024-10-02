@@ -18,14 +18,16 @@ class _FavoritesService {
   }
 
   // Stream
-  final StreamController<List<FavoriteSpot>> _favoritesController =
-      StreamController<List<FavoriteSpot>>.broadcast();
-  Stream<List<FavoriteSpot>> get favoritesStream => _favoritesController.stream;
+  final StreamController<Map<String, List<FavoriteSpot>>> _favoritesController =
+      StreamController<Map<String, List<FavoriteSpot>>>.broadcast();
+  Stream<Map<String, List<FavoriteSpot>>> get favoritesStream =>
+      _favoritesController.stream;
 
   final User? user = AppState.currentUser;
 
   Future<List<FavoriteSpot>> fetchFavoritesStream() async {
     List<FavoriteSpot> favoritesList = [];
+    Map<String, List<FavoriteSpot>> groupedFavorites = {};
     if (user != null) {
       try {
         final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -37,7 +39,13 @@ class _FavoritesService {
           favoritesList = snapshot.docs
               .map((doc) => FavoriteSpot.fromFirestore(doc))
               .toList();
-          _favoritesController.add(favoritesList);
+          for (var favoriteSpot in favoritesList) {
+            if (!groupedFavorites.containsKey(favoriteSpot.category)) {
+              groupedFavorites[favoriteSpot.category] = [];
+            }
+            groupedFavorites[favoriteSpot.category]!.add(favoriteSpot);
+          }
+          _favoritesController.add(groupedFavorites);
         });
       } catch (error) {
         // ignore: avoid_print

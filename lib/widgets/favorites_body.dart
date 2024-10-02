@@ -23,10 +23,10 @@ class _FavoritesBodyState extends State<FavoritesBody> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<FavoriteSpot>>(
+    return StreamBuilder<Map<String, List<FavoriteSpot>>>(
       stream: favoritesService.favoritesStream,
-      builder:
-          (BuildContext context, AsyncSnapshot<List<FavoriteSpot>> snapshot) {
+      builder: (BuildContext context,
+          AsyncSnapshot<Map<String, List<FavoriteSpot>>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -38,39 +38,50 @@ class _FavoritesBodyState extends State<FavoritesBody> {
           return const Center(child: Text('No favorites found'));
         }
 
-        List<FavoriteSpot> favorites = snapshot.data!;
+        Map<String, List<FavoriteSpot>> groupedFavorites = snapshot.data!;
+        List<String> categories = groupedFavorites.keys.toList();
 
         return ListView.builder(
-          itemCount: favorites.length,
-          itemBuilder: (context, index) {
-            final favorite = favorites[index];
-            return ListTile(
-              title: GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                  BlocProvider.of<FoursquareBloc>(context).add(
-                    AddFavoriteMarkerEvent(
-                      favorite.foursquareId,
-                      LatLng(favorite.latitude, favorite.longitude),
-                      favorite.name,
+          shrinkWrap: true,
+          itemCount: categories.length,
+          itemBuilder: (context, categoryIndex) {
+            String category = categories[categoryIndex];
+            List<FavoriteSpot> spots = groupedFavorites[category]!;
+
+            List<Widget> categoryWidgets = [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      category,
+                      style: Theme.of(context).textTheme.titleMedium!.copyWith(color: Theme.of(context).primaryColor),
                     ),
-                  );
-                },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(favorite.name),
-                    Text(favorite.address),
-                  ],
+                  ),
+                  Divider(color: Theme.of(context).primaryColor)
+                ],
+              ),
+            ];
+
+            for (var spot in spots) {
+              categoryWidgets.add(
+                ListTile(
+                  leading: const Icon(Icons.location_pin, size: 20, color: Colors.black38),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  title: Text(spot.name, style: Theme.of(context).textTheme.bodyMedium),
+                  subtitle: Text(spot.address),
+                  onTap: () {
+                    // TODO Handle tap event, e.g., navigate to spot details
+                  },
                 ),
-              ),
-              subtitle: Text(favorite.category),
-              trailing: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () async {
-                  await favoritesService.deleteFavorite(favorite.id!);
-                },
-              ),
+              );
+            }
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: categoryWidgets,
             );
           },
         );
