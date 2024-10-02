@@ -13,7 +13,7 @@
   - **GetX** for accessing Foursquare place details.
   - A **singleton** pattern for managing Firebase connections and retrieving the user's favorites.
 
-<img src="assets/images/screenshots/home.png" alt="App Screenshot" height="300">
+<img src="assets/images/screenshots/home.png" alt="App Screenshot" height="450"> <img src="assets/images/screenshots/favorites.png" alt="App Screenshot" height="450">
 
 ## Technologies Used
 
@@ -22,8 +22,6 @@
 - **Google Maps**: For displaying locations.
 - **Foursquare API**: For accessing place data.
 - **State Management**: BLoC, GetX, Singleton, Stateful widget.
-
-<img src="assets/images/screenshots/favorites.png" alt="App Screenshot" height="300">
 
 ## Getting Started
 
@@ -34,7 +32,7 @@
 - Firebase account
 - Foursquare API key
 
-<img src="assets/images/screenshots/sheet.png" alt="App Screenshot" height="300">
+<img src="assets/images/screenshots/sheet.png" alt="App Screenshot" height="450"> <img src="assets/images/screenshots/splashscreen.png" alt="App Screenshot" height="450">
 
 ### Installation
 
@@ -66,8 +64,6 @@
    ```bash
    flutter run
    ```
-
-<img src="assets/images/screenshots/splashscreen.png" alt="App Screenshot" height="300">
 
 ## Usage
 ### Sign Up / Sign In
