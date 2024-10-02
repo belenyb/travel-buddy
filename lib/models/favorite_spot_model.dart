@@ -49,7 +49,7 @@ class FavoriteSpot {
       addedAt: (map['addedAt'] as Timestamp?)?.toDate(),
       latitude: map['latitude']?.toDouble() ?? 0.0,
       longitude: map['longitude']?.toDouble() ?? 0.0,
-      address: map['address'] ?? "No address",
+      address: map['address'] ?? "",
       locality: map['locality'],
       region: map['region'] ?? "No region",
       country: map['country'] ?? "No country",

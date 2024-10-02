@@ -97,8 +97,8 @@ class _SheetContentState extends State<SheetContent> {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                widget.place?.address ?? "No address",
+                              if(widget.place!.address != "") Text(
+                                widget.place!.address,
                                 style: Theme.of(context).textTheme.bodyLarge,
                               ),
                               Text(

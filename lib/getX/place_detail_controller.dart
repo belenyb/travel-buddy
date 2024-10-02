@@ -49,7 +49,7 @@ class PlaceController extends GetxController {
             name: jsonResponse["name"] ?? "No name",
             latitude: jsonResponse["geocodes"]["main"]["latitude"] ?? 0,
             longitude: jsonResponse["geocodes"]["main"]["longitude"] ?? 0,
-            address: jsonResponse["location"]["address"] ?? "No address",
+            address: jsonResponse["location"]["address"] ?? "",
             locality: jsonResponse["location"]["locality"] ?? "No locality",
             region: jsonResponse["location"]["region"] ?? "No region",
             country: jsonResponse["location"]["country"],
