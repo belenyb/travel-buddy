@@ -65,8 +65,10 @@
    ```bash
    flutter run
    ```
-
-<img src="assets/images/screenshots/sheet.png" alt="App Screenshot" height="450"><img src="assets/images/screenshots/favorites.png" alt="App Screenshot" height="450">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+  <img src="assets/images/screenshots/sheet.png" alt="App Screenshot" height="450">
+  <img src="assets/images/screenshots/favorites.png" alt="App Screenshot" height="450">
+</div>
 
 ## Usage
 ### Sign Up / Sign In
