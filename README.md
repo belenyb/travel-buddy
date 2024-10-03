@@ -66,8 +66,7 @@
    flutter run
    ```
 
-<img src="assets/images/screenshots/sheet.png" alt="App Screenshot" height="450">
-<img src="assets/images/screenshots/favorites.png" alt="App Screenshot" height="450">
+<img src="assets/images/screenshots/sheet.png" alt="App Screenshot" height="450"><img src="assets/images/screenshots/favorites.png" alt="App Screenshot" height="450">
 
 ## Usage
 ### Sign Up / Sign In
