@@ -66,7 +66,6 @@
    ```
 <div style="display: flex; justify-content: space-between; align-items: center;">
   <img src="assets/images/screenshots/sheet.png" alt="App Screenshot" height="450">
-  <img src="assets/images/screenshots/favorites.png" alt="App Screenshot" height="450">
 </div>
 
 ## Usage
@@ -78,3 +77,6 @@ Use the Google Map interface to explore nearby locations categorized by Foursqua
 
 ### Mark Favorites
 Tap on a location to mark it as a favorite. Your favorites are saved and can be accessed later.
+
+  <img src="assets/images/screenshots/favorites.png" alt="App Screenshot" height="450">
+
