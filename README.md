@@ -15,7 +15,6 @@
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
   <img src="assets/images/screenshots/splashscreen.png" alt="App Screenshot" height="450">
-  <img src="assets/images/screenshots/home.png" alt="App Screenshot" height="450">
 </div>
 
 ## Technologies Used
